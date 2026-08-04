@@ -7,7 +7,7 @@ LIBS = -lgdi32
 CFLAGS = -Wl,-subsystem,windows -mwindows -Wall -Wextra -Wpedantic
 
 # Main source file
-SRC = src/deckMain.c
+SRC = src/deckMain.c src/app.c
 
 BUILD_DIR = build
 BIN_DIR = bin

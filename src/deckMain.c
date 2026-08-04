@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "app.h"
+
 const char g_szClassName[] = "myWindowClass";
 
 HBRUSH g_hbrBackground;
