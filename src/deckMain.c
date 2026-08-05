@@ -11,14 +11,24 @@ COLORREF g_rgbBackground = RGB(255, 255, 255);
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    static RECT rcClient;    // client-area rectangle
+    static AppState app;
     
     
 	switch(msg)
 	{
 		case WM_CREATE:
-            GetClientRect(hwnd, &rcClient);
+            InitializeApp(hwnd, &app);
             
+        break;
+        case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+            
+            DrawFlashcard(hdc, &app.card);
+            
+            EndPaint(hwnd, &ps);
+        }
         break;
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
