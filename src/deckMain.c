@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <windowsx.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -28,6 +29,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             DrawFlashcard(hdc, &app.card);
             
             EndPaint(hwnd, &ps);
+        }
+        break;
+        case WM_MOUSEMOVE:
+        {
+            POINT mousePosition =
+            {
+                GET_X_LPARAM(lParam),
+                GET_Y_LPARAM(lParam)
+            };
+            
+            BOOL wasHovered = app.card.isHovered;
+            
+            app.card.isHovered = PtInRect(&app.card.bounds, mousePosition);
+            
+            if (app.card.isHovered != wasHovered)
+            {
+                InvalidateRect(
+                    hwnd,
+                    &app.card.bounds,
+                    FALSE
+                );
+            }
         }
         break;
 		case WM_CLOSE:

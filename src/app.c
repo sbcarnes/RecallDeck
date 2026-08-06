@@ -20,9 +20,15 @@ void DrawFlashcard(
     const Flashcard *card
 )
 {
+    HBRUSH cardBrush = GetStockObject(
+        card->isHovered
+            ? LTGRAY_BRUSH
+            : WHITE_BRUSH
+    );
+    
     HBRUSH oldBrush = (HBRUSH)SelectObject(
         hdc,
-        GetStockObject(WHITE_BRUSH)
+        cardBrush
     );
     
     HPEN oldPen = (HPEN)SelectObject(
