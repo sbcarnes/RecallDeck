@@ -13,6 +13,7 @@ typedef struct AppState
 {
     RECT clientRect;
     Flashcard card;
+    BOOL trackingMouseLeave;
 } AppState;
 
 void InitializeApp(HWND hwnd, AppState *app);

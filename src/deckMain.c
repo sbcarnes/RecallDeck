@@ -39,12 +39,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 GET_Y_LPARAM(lParam)
             };
             
+            if (!app.trackingMouseLeave)
+            {
+                TRACKMOUSEEVENT tme = {0};
+                
+                tme.cbSize = sizeof(TRACKMOUSEEVENT);
+                tme.dwFlags = TME_LEAVE;
+                tme.hwndTrack = hwnd;
+                
+                if (TrackMouseEvent(&tme))
+                {
+                    app.trackingMouseLeave = TRUE;
+                }
+            }
+            
             BOOL wasHovered = app.card.isHovered;
             
             app.card.isHovered = PtInRect(&app.card.bounds, mousePosition);
             
             if (app.card.isHovered != wasHovered)
             {
+                InvalidateRect(
+                    hwnd,
+                    &app.card.bounds,
+                    FALSE
+                );
+            }
+        }
+        break;
+        case WM_MOUSELEAVE:
+        {
+            app.trackingMouseLeave = FALSE;
+            
+            if (app.card.isHovered)
+            {
+                app.card.isHovered = FALSE;
+                
                 InvalidateRect(
                     hwnd,
                     &app.card.bounds,
