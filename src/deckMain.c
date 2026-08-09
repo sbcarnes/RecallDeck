@@ -67,6 +67,44 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+        case WM_LBUTTONDOWN:
+        {
+            POINT mousePosition =
+            {
+              GET_X_LPARAM(lParam),
+              GET_Y_LPARAM(lParam)
+            };
+            
+            if (PtInRect(&app.card.bounds, mousePosition))
+            {
+                app.card.isPressed = TRUE;
+                
+                SetCapture(hwnd);
+                
+                InvalidateRect(
+                    hwnd,
+                    &app.card.bounds,
+                    FALSE
+                );
+            }
+        }
+        break;
+        case WM_LBUTTONUP:
+        {
+            if (app.card.isPressed)
+            {
+                app.card.isPressed = FALSE;
+                
+                ReleaseCapture();
+                
+                InvalidateRect(
+                    hwnd,
+                    &app.card.bounds,
+                    FALSE
+                );
+            }
+        }
+        break;
         case WM_MOUSELEAVE:
         {
             app.trackingMouseLeave = FALSE;

@@ -13,6 +13,7 @@ void InitializeApp(HWND hwnd, AppState *app)
     );
     
     app->card.isHovered = FALSE;
+    app->card.isPressed = FALSE;
 }
 
 void DrawFlashcard(
@@ -20,11 +21,26 @@ void DrawFlashcard(
     const Flashcard *card
 )
 {
-    HBRUSH cardBrush = GetStockObject(
+    /*HBRUSH cardBrush = GetStockObject(
         card->isHovered
             ? LTGRAY_BRUSH
             : WHITE_BRUSH
-    );
+    );*/
+    
+    HBRUSH cardBrush;
+    
+    if (card->isPressed)
+    {
+        cardBrush = GetStockObject(GRAY_BRUSH);
+    }
+    else if (card->isHovered)
+    {
+        cardBrush = GetStockObject(LTGRAY_BRUSH);
+    }
+    else
+    {
+        cardBrush = GetStockObject(WHITE_BRUSH);
+    }
     
     HBRUSH oldBrush = (HBRUSH)SelectObject(
         hdc,

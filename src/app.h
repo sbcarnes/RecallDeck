@@ -7,6 +7,7 @@ typedef struct Flashcard
 {
     RECT bounds;
     BOOL isHovered;
+    BOOL isPressed;
 } Flashcard;
 
 typedef struct AppState
