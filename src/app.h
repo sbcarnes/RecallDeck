@@ -6,8 +6,11 @@
 typedef struct Flashcard
 {
     RECT bounds;
+    
     BOOL isHovered;
     BOOL isPressed;
+    
+    POINT dragOffset;
 } Flashcard;
 
 typedef struct AppState

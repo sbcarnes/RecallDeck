@@ -79,6 +79,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 app.card.isPressed = TRUE;
                 
+                app.card.dragOffset.x =
+                    mousePosition.x - app.card.bounds.left;
+                
+                app.card.dragOffset.y =
+                    mousePosition.y - app.card.bounds.top;
+                    
                 SetCapture(hwnd);
                 
                 InvalidateRect(

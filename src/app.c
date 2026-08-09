@@ -21,12 +21,6 @@ void DrawFlashcard(
     const Flashcard *card
 )
 {
-    /*HBRUSH cardBrush = GetStockObject(
-        card->isHovered
-            ? LTGRAY_BRUSH
-            : WHITE_BRUSH
-    );*/
-    
     HBRUSH cardBrush;
     
     if (card->isPressed)
