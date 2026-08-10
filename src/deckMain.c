@@ -53,18 +53,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
             }
             
-            BOOL wasHovered = app.card.isHovered;
-            
-            app.card.isHovered = PtInRect(&app.card.bounds, mousePosition);
-            
-            if (app.card.isHovered != wasHovered)
+            if (app.card.isPressed)
             {
-                InvalidateRect(
-                    hwnd,
-                    &app.card.bounds,
-                    FALSE
-                );
+                RECT oldBounds = app.card.bounds;
+                
+                int newLeft = mousePosition.x - app.card.dragOffset.x;
+                
+                int newTop = mousePosition.y - app.card.dragOffset.y;
+                
+                int deltaX = newLeft - app.card.bounds.left;
+                
+                int deltaY = newTop - app.card.bounds.top;
+                
+                OffsetRect(&app.card.bounds, deltaX, deltaY);
+                InvalidateRect(hwnd, &oldBounds, FALSE);
+                InvalidateRect(hwnd, &app.card.bounds, FALSE);
             }
+            else
+            {
+                BOOL wasHovered = app.card.isHovered;
+            
+                app.card.isHovered = PtInRect(&app.card.bounds, mousePosition);
+                
+                if (app.card.isHovered != wasHovered)
+                {
+                    InvalidateRect(
+                        hwnd,
+                        &app.card.bounds,
+                        FALSE
+                    );
+                }
+            }
+            
+            
         }
         break;
         case WM_LBUTTONDOWN:
