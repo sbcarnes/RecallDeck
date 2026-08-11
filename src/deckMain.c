@@ -26,6 +26,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             
+            FillRect(
+                hdc,
+                &ps.rcPaint,
+                (HBRUSH)(COLOR_WINDOW + 1)
+            );
+            
             DrawFlashcard(hdc, &app.card);
             
             EndPaint(hwnd, &ps);
