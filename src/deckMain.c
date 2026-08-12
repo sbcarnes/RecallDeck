@@ -7,8 +7,6 @@
 
 const char g_szClassName[] = "myWindowClass";
 
-HBRUSH g_hbrBackground;
-COLORREF g_rgbBackground = RGB(255, 255, 255);
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -26,13 +24,40 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             
-            FillRect(
+            RECT clientRect;
+            GetClientRect(hwnd, &clientRect);
+            
+            HDC memDC = CreateCompatibleDC(hdc);
+            
+            HBITMAP memBitmap = CreateCompatibleBitmap(
                 hdc,
-                &ps.rcPaint,
+                clientRect.right,
+                clientRect.bottom
+            );
+            
+            HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, memBitmap);
+            
+            FillRect(
+                memDC,
+                &clientRect,
                 (HBRUSH)(COLOR_WINDOW + 1)
             );
             
-            DrawFlashcard(hdc, &app.card);
+            DrawFlashcard(memDC, &app.card);
+            
+            BitBlt(
+                hdc,
+                ps.rcPaint.left, ps.rcPaint.top,
+                ps.rcPaint.right - ps.rcPaint.left,
+                ps.rcPaint.bottom - ps.rcPaint.top,
+                memDC,
+                ps.rcPaint.left, ps.rcPaint.top,
+                SRCCOPY
+            );
+            
+            SelectObject(memDC, oldBitmap);
+            DeleteObject(memBitmap);
+            DeleteDC(memDC);
             
             EndPaint(hwnd, &ps);
         }
