@@ -1,4 +1,5 @@
 #include "app.h"
+#include <stdio.h>
 
 void InitializeApp(HWND hwnd, AppState *app)
 {
@@ -14,6 +15,20 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     app->card.isHovered = FALSE;
     app->card.isPressed = FALSE;
+    
+    app->card.visibleSide = CARD_FRONT;
+    
+    snprintf(
+        app->card.frontText,
+        sizeof(app->card.frontText),
+        "What message reports mouse movement?"
+    );
+            
+    snprintf(
+        app->card.backText,
+        sizeof(app->card.backText),
+        "WM_MOUSEMOVE"
+    );
 }
 
 void DrawFlashcard(
