@@ -98,6 +98,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 
                 OffsetRect(&app.card.bounds, deltaX, deltaY);
                 InvalidateRect(hwnd, &oldBounds, FALSE);
+                
+                if (app.card.visibleSide == CARD_FRONT)
+                {
+                    app.card.visibleSide = CARD_BACK;
+                }
+                else
+                {
+                    app.card.visibleSide = CARD_FRONT;
+                }
+                
                 InvalidateRect(hwnd, &app.card.bounds, FALSE);
             }
             else

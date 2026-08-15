@@ -76,12 +76,17 @@ void DrawFlashcard(
     
     int oldBackgroundMode = SetBkMode(hdc, TRANSPARENT);
     
+    const char *cardText =
+        card->visibleSide == CARD_FRONT
+            ? card->frontText
+            : card->backText;
+    
     DrawText(
         hdc,
-        "Front of card",
+        cardText,
         -1,
         &textRect,
-        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+        DT_CENTER | DT_VCENTER | DT_WORDBREAK
     );
     
     SetBkMode(hdc, oldBackgroundMode);
