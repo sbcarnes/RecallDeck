@@ -15,6 +15,7 @@ typedef struct Flashcard
     
     BOOL isHovered;
     BOOL isPressed;
+    BOOL wasDragged;
     
     POINT dragOffset;
     

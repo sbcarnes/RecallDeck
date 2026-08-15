@@ -17,6 +17,7 @@ void InitializeApp(HWND hwnd, AppState *app)
     app->card.isPressed = FALSE;
     
     app->card.visibleSide = CARD_FRONT;
+    app->card.wasDragged = FALSE;
     
     snprintf(
         app->card.frontText,

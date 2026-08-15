@@ -96,18 +96,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 
                 int deltaY = newTop - app.card.bounds.top;
                 
-                OffsetRect(&app.card.bounds, deltaX, deltaY);
-                InvalidateRect(hwnd, &oldBounds, FALSE);
                 
-                if (app.card.visibleSide == CARD_FRONT)
+                
+                /*if (app.card.visibleSide == CARD_FRONT)
                 {
                     app.card.visibleSide = CARD_BACK;
                 }
                 else
                 {
                     app.card.visibleSide = CARD_FRONT;
-                }
+                }*/
                 
+                if (deltaX != 0 || deltaY != 0)
+                {
+                    app.card.wasDragged = TRUE;
+                }
+                OffsetRect(&app.card.bounds, deltaX, deltaY);
+                InvalidateRect(hwnd, &oldBounds, FALSE);
                 InvalidateRect(hwnd, &app.card.bounds, FALSE);
             }
             else
@@ -140,6 +145,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (PtInRect(&app.card.bounds, mousePosition))
             {
                 app.card.isPressed = TRUE;
+                app.card.wasDragged = FALSE;
                 
                 app.card.dragOffset.x =
                     mousePosition.x - app.card.bounds.left;
@@ -161,9 +167,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             if (app.card.isPressed)
             {
+                POINT mousePosition =
+                {
+                    GET_X_LPARAM(lParam),
+                    GET_Y_LPARAM(lParam)
+                };
+                
+                BOOL shouldFlip =
+                    !app.card.wasDragged &&
+                    PtInRect(&app.card.bounds, mousePosition);
+                
                 app.card.isPressed = FALSE;
                 
                 ReleaseCapture();
+                
+                if (shouldFlip)
+                {
+                    if (app.card.visibleSide == CARD_FRONT)
+                    {
+                        app.card.visibleSide = CARD_BACK;
+                    }
+                    else
+                    {
+                        app.card.visibleSide = CARD_FRONT;
+                    }
+                }
+                
+                app.card.wasDragged = FALSE;
                 
                 InvalidateRect(
                     hwnd,
