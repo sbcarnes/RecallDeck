@@ -37,9 +37,28 @@ void DrawFlashcard(
     const Flashcard *card
 )
 {
-    HBRUSH cardBrush;
     
-    if (card->isPressed)
+    COLORREF cardColor;
+    
+    if (card->visibleSide == CARD_FRONT)
+    {
+        cardColor = RGB(235, 242, 248); /* subtle cool blue-gray */
+    }
+    else
+    {
+        cardColor = RGB(240, 244, 232); /* subtle warm green-gray */
+    }
+    
+    HBRUSH cardBrush = CreateSolidBrush(cardColor);
+    
+    if (cardBrush == NULL)
+    {
+        return;
+    }
+    
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, cardBrush);
+    
+    /*if (card->isPressed)
     {
         cardBrush = GetStockObject(GRAY_BRUSH);
     }
@@ -55,7 +74,7 @@ void DrawFlashcard(
     HBRUSH oldBrush = (HBRUSH)SelectObject(
         hdc,
         cardBrush
-    );
+    );*/
     
     HPEN oldPen = (HPEN)SelectObject(
         hdc,
@@ -75,12 +94,19 @@ void DrawFlashcard(
     
     RECT textRect = card->bounds;
     
-    int oldBackgroundMode = SetBkMode(hdc, TRANSPARENT);
+    textRect.left += 20;
+    textRect.right -= 20;
+    textRect.top += 20;
+    textRect.bottom -= 40;
+    
+    
     
     const char *cardText =
         card->visibleSide == CARD_FRONT
             ? card->frontText
             : card->backText;
+    
+    int oldBackgroundMode = SetBkMode(hdc, TRANSPARENT);
     
     DrawText(
         hdc,
