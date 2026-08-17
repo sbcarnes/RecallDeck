@@ -116,5 +116,21 @@ void DrawFlashcard(
         DT_CENTER | DT_VCENTER | DT_WORDBREAK
     );
     
+    if (card->visibleSide == CARD_FRONT)
+    {
+        RECT hintRect = card->bounds;
+        
+        hintRect.left += 20;
+        hintRect.right -= 20;
+        hintRect.bottom -=12;
+        hintRect.top = hintRect.bottom - 24;
+        
+        COLORREF oldTextColor = SetTextColor(hdc, RGB(110, 110, 110));
+        
+        DrawText(hdc, "Click to reveal", -1, &hintRect, DT_RIGHT | DT_SINGLELINE);
+        
+        SetTextColor(hdc, oldTextColor);
+    }
+    
     SetBkMode(hdc, oldBackgroundMode);
 }
