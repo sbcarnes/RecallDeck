@@ -3,6 +3,8 @@
 
 #include <windows.h>
 
+#define MAX_CARDS 32
+
 typedef enum CardSide
 {
     CARD_FRONT = 0,
@@ -23,14 +25,30 @@ typedef struct Flashcard
     
     char frontText[256];
     char backText[256];
+    
+    unsigned int hits;
+    unsigned int misses;
+    
+    RECT missedButtonRect;
+    RECT gotItButtonRect;
 } Flashcard;
+
+typedef struct Deck
+{
+    Flashcard cards[MAX_CARDS];
+    size_t cardCount;
+    size_t currentIndex;
+} Deck;
 
 typedef struct AppState
 {
     RECT clientRect;
     Flashcard card;
     BOOL trackingMouseLeave;
+    Deck deck;
 } AppState;
+
+
 
 void InitializeApp(HWND hwnd, AppState *app);
 

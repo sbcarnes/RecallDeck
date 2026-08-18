@@ -1,6 +1,11 @@
 #include "app.h"
 #include <stdio.h>
 
+static void DrawCardBackground(HDC hdc, const Flashcard *card);
+static void DrawCardText(HDC hdc,  const Flashcard *card);
+static void DrawRevealHint(HDC hdc, const Flashcard *card);
+static void DrawAnswerControls(HDC hdc, const Flashcard *card);
+
 void InitializeApp(HWND hwnd, AppState *app)
 {
     GetClientRect(hwnd, &app->clientRect);
