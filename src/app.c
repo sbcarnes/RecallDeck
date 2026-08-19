@@ -12,32 +12,35 @@ static void GetAnswerButtonRects(
     RECT *gotItRect
 )
 {
-    int buttonWidth = 100;
-    int buttonHeight = 32;
-    int gap = 16;
+    int cardWidth = card->bounds.right - card->bounds.left;
+    int cardHeight = card->bounds.bottom - card->bounds.top;
     
-    int totalWidth = buttonWidth * 2 + gap;
+    int columnLeft = card->bounds.left + (cardWidth * 2 / 3);
+    int columnWidth = card->bounds.right - columnLeft;
     
-    int startX =
-        card->bounds.left +
-        ((card->bounds.right - card->bounds.left) - totalWidth) / 2;
+    int buttonMargin = 16;
+    int buttonGap = 14;
     
-    int buttonTop = card->bounds.bottom - 50;
+    int buttonLeft = columnLeft + buttonMargin;
+    int buttonRight = card->bounds.right - buttonMargin;
+    
+    int availableHeight = cardHeight - (buttonMargin * 2);
+    int buttonHeight = (availableHeight - buttonGap) / 2;
     
     SetRect(
         missedRect,
-        startX,
-        buttonTop,
-        startX + buttonWidth,
-        buttonTop + buttonHeight
+        buttonLeft,
+        card->bounds.top + buttonMargin,
+        buttonRight,
+        card->bounds.top + buttonMargin + buttonHeight
     );
     
     SetRect(
         gotItRect,
-        startX + buttonWidth + gap,
-        buttonTop,
-        startX + buttonWidth + gap + buttonWidth,
-        buttonTop + buttonHeight    
+        buttonLeft,
+        card->bounds.top + buttonMargin + buttonHeight + buttonGap,
+        buttonRight,
+        card->bounds.bottom - buttonMargin
     );
 }
 
@@ -96,7 +99,6 @@ static void DrawCardText(
     RECT contentRect = card->bounds;
     
     contentRect.left += 24;
-    contentRect.right -= 24;
     contentRect.top += 24;
     
     /*
@@ -104,7 +106,26 @@ static void DrawCardText(
             - reveal hint on the front
             - grading buttons on the back
     */
-    contentRect.bottom -= 70;
+    
+    if (card-> visibleSide == CARD_FRONT)
+    {
+        contentRect.right -= 24;
+        
+        // Reserve lower area for reveal hint
+        
+        contentRect.bottom -= 70;
+    }
+    else
+    {
+        int cardWidth = card->bounds.right - card->bounds.left;
+        
+        // Stop answer text before right-hand button column
+        
+        contentRect.right =
+            card->bounds.left + (cardWidth * 2 / 3) - 16;
+        
+        contentRect.bottom -= 24;
+    }
     
     RECT measuredRect = contentRect;
     
@@ -200,16 +221,34 @@ static void DrawAnswerControls(
         &gotItRect
     );
     
-    HBRUSH oldBrush = 
-        (HBRUSH)SelectObject(
-            hdc,
-            GetStockObject(WHITE_BRUSH)
-        );
+    HBRUSH missedBrush = CreateSolidBrush(RGB(185, 85, 85));
+    HBRUSH gotItBrush = CreateSolidBrush(RGB(70, 125, 80));
+    
+    if (missedBrush == NULL || gotItBrush == NULL)
+    {
+        if (missedBrush != NULL)
+        {
+            DeleteObject(missedBrush);
+        }
+        
+        if (gotItBrush != NULL)
+        {
+            DeleteObject(gotItBrush);
+        }
+        
+        return;
+    }
     
     HPEN oldPen =
         (HPEN)SelectObject(
             hdc,
             GetStockObject(BLACK_PEN)
+        );
+    
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc,
+            missedBrush
         );
     
     Rectangle(
@@ -220,6 +259,8 @@ static void DrawAnswerControls(
         missedRect.bottom
     );
     
+    SelectObject(hdc, gotItBrush);
+    
     Rectangle(
         hdc,
         gotItRect.left,
@@ -227,6 +268,12 @@ static void DrawAnswerControls(
         gotItRect.right,
         gotItRect.bottom
     );
+    
+    COLORREF oldTextColor = 
+        SetTextColor(
+            hdc,
+            RGB(255, 255, 255)
+        );
     
     int oldBackgroundMode =
         SetBkMode(
@@ -255,8 +302,16 @@ static void DrawAnswerControls(
         oldBackgroundMode
     );
     
-    SelectObject(hdc, oldPen);
+    SetTextColor(
+        hdc,
+        oldTextColor
+    );
+    
     SelectObject(hdc, oldBrush);
+    SelectObject(hdc, oldPen);
+    
+    DeleteObject(missedBrush);
+    DeleteObject(gotItBrush);
 }
 
 void InitializeApp(HWND hwnd, AppState *app)
