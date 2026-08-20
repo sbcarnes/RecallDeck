@@ -48,7 +48,10 @@ typedef struct AppState
     Deck deck;
 } AppState;
 
-
+void HandleFlashcardClick(
+    Flashcard *card,
+    POINT mousePosition
+);
 
 void InitializeApp(HWND hwnd, AppState *app);
 

@@ -16,7 +16,6 @@ static void GetAnswerButtonRects(
     int cardHeight = card->bounds.bottom - card->bounds.top;
     
     int columnLeft = card->bounds.left + (cardWidth * 2 / 3);
-    int columnWidth = card->bounds.right - columnLeft;
     
     int buttonMargin = 16;
     int buttonGap = 14;
@@ -312,6 +311,45 @@ static void DrawAnswerControls(
     
     DeleteObject(missedBrush);
     DeleteObject(gotItBrush);
+}
+
+void HandleFlashcardClick(
+    Flashcard *card,
+    POINT mousePosition
+)
+{
+    if (card->visibleSide == CARD_FRONT)
+    {
+        card->visibleSide = CARD_BACK;
+        return;
+    }
+    
+    RECT missedRect;
+    RECT gotItRect;
+    
+    GetAnswerButtonRects(
+        card,
+        &missedRect,
+        &gotItRect
+    );
+    
+    if (PtInRect(&missedRect, mousePosition))
+    {
+        card->misses++;
+        card->visibleSide = CARD_FRONT;
+    }
+    else if (PtInRect(&gotItRect, mousePosition))
+    {
+        card->hits++;
+        card->visibleSide = CARD_FRONT;
+    }
+    else
+    {
+        // For now, clicking anywhere else on
+        // the answer side flips it back
+        
+        card->visibleSide = CARD_FRONT;
+    }
 }
 
 void InitializeApp(HWND hwnd, AppState *app)

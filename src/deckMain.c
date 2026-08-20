@@ -173,7 +173,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     GET_Y_LPARAM(lParam)
                 };
                 
-                BOOL shouldFlip =
+                BOOL isCardClick =
                     !app.card.wasDragged &&
                     PtInRect(&app.card.bounds, mousePosition);
                 
@@ -181,16 +181,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 
                 ReleaseCapture();
                 
-                if (shouldFlip)
+                if (isCardClick)
                 {
-                    if (app.card.visibleSide == CARD_FRONT)
-                    {
-                        app.card.visibleSide = CARD_BACK;
-                    }
-                    else
-                    {
-                        app.card.visibleSide = CARD_FRONT;
-                    }
+                    HandleFlashcardClick(
+                        &app.card,
+                        mousePosition
+                    );
                 }
                 
                 app.card.wasDragged = FALSE;
