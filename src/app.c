@@ -343,13 +343,7 @@ void HandleFlashcardClick(
         card->hits++;
         card->visibleSide = CARD_FRONT;
     }
-    else
-    {
-        // For now, clicking anywhere else on
-        // the answer side flips it back
-        
-        card->visibleSide = CARD_FRONT;
-    }
+    
 }
 
 void InitializeApp(HWND hwnd, AppState *app)
