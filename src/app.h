@@ -60,4 +60,10 @@ void DrawFlashcard(
     const Flashcard *card
 );
 
+void DrawDiagnostics(
+    HDC hdc,
+    const RECT *clientRect,
+    const Flashcard *card
+);
+
 #endif

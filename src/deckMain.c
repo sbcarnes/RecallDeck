@@ -45,6 +45,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             DrawFlashcard(memDC, &app.card);
             
+            DrawDiagnostics(memDC, &clientRect, &app.card);
+            
             BitBlt(
                 hdc,
                 ps.rcPaint.left, ps.rcPaint.top,
@@ -187,15 +189,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         &app.card,
                         mousePosition
                     );
+                    
+                    InvalidateRect(
+                        hwnd,
+                        NULL,
+                        FALSE
+                    );
+                }
+                else
+                {
+                    InvalidateRect(
+                        hwnd,
+                        &app.card.bounds,
+                        FALSE
+                    );
                 }
                 
                 app.card.wasDragged = FALSE;
                 
-                InvalidateRect(
-                    hwnd,
-                    &app.card.bounds,
-                    FALSE
-                );
+                
             }
         }
         break;

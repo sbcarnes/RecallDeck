@@ -370,6 +370,9 @@ void InitializeApp(HWND hwnd, AppState *app)
     app->card.visibleSide = CARD_FRONT;
     app->card.wasDragged = FALSE;
     
+    app->card.hits = 0;
+    app->card.misses = 0;
+    
     snprintf(
         app->card.frontText,
         sizeof(app->card.frontText),
@@ -401,4 +404,81 @@ void DrawFlashcard(
         DrawAnswerControls(hdc, card);
     }
     
+}
+
+void DrawDiagnostics(
+    HDC hdc,
+    const RECT *clientRect,
+    const Flashcard *card
+)
+{
+    RECT panelRect;
+    
+    int panelWidth = 180;
+    int panelHeight = 110;
+    int margin = 20;
+    
+    SetRect(
+        &panelRect,
+        clientRect->right - panelWidth - margin,
+        margin,
+        clientRect->right - margin,
+        margin + panelHeight
+    );
+    
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc,
+            GetStockObject(LTGRAY_BRUSH)
+        );
+    
+    HPEN oldPen = 
+        (HPEN)SelectObject(
+            hdc, GetStockObject(BLACK_PEN)
+        );
+    
+    Rectangle(
+        hdc,
+        panelRect.left,
+        panelRect.top,
+        panelRect.right,
+        panelRect.bottom
+    );
+    
+    RECT textRect = panelRect;
+    
+    InflateRect(
+        &textRect,
+        -12,
+        -12
+    );
+    
+    char diagnosticText[128];
+    
+    snprintf(
+        diagnosticText,
+        sizeof(diagnosticText),
+        "CARD DEBUG\n\nHits: %u\nMisses: %u",
+        card->hits,
+        card->misses
+    );
+    
+    int oldBackgroundMode =
+        SetBkMode(
+            hdc,
+            TRANSPARENT
+        );
+    
+    DrawText(
+        hdc,
+        diagnosticText,
+        -1, &textRect,
+        DT_LEFT | DT_TOP
+    );
+    
+    SetBkMode(hdc, oldBackgroundMode);
+    
+    SelectObject(hdc, oldPen);
+    
+    SelectObject(hdc, oldBrush);
 }
