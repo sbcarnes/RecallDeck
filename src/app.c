@@ -57,6 +57,10 @@ static void DrawCardBackground(
         {
             cardColor = RGB(210, 220, 228);
         }
+        else if (card->hoverTarget == CARD_HOVER_SURFACE)
+        {
+            cardColor = RGB(220, 230, 238);
+        }
         else
         {
             cardColor = RGB(235, 242, 248);
@@ -68,6 +72,10 @@ static void DrawCardBackground(
         if (card->pressTarget == CARD_PRESS_SURFACE)
         {
             cardColor = RGB(216, 222, 207);
+        }
+        else if (card->hoverTarget == CARD_HOVER_SURFACE)
+        {
+            cardColor = RGB(228, 233, 219);
         }
         else
         {
@@ -236,15 +244,34 @@ static void DrawAnswerControls(
         &gotItRect
     );
     
-    COLORREF missedColor =
-        card->pressTarget == CARD_PRESS_MISSED
-            ? RGB(155, 65, 65)
-            : RGB(185, 85, 85);
+    COLORREF missedColor;
+    COLORREF gotItColor;
     
-    COLORREF gotItColor =
-        card->pressTarget == CARD_PRESS_GOT_IT
-            ? RGB(50, 100, 60)
-            : RGB(70, 125, 80);
+    if (card->pressTarget == CARD_PRESS_MISSED)
+    {
+        missedColor = RGB(155, 65, 65);
+    }
+    else if (card->hoverTarget == CARD_HOVER_MISSED)
+    {
+        missedColor = RGB(170, 75, 75);
+    }
+    else
+    {
+        missedColor = RGB(185, 85, 85);
+    }
+    
+    if (card->pressTarget == CARD_PRESS_GOT_IT)
+    {
+        gotItColor = RGB(50, 100, 60);
+    }
+    else if (card->hoverTarget == CARD_HOVER_GOT_IT)
+    {
+        gotItColor = RGB(60, 112, 70);
+    }
+    else
+    {
+        gotItColor = RGB(70, 125, 80);
+    }
     
     HBRUSH missedBrush = CreateSolidBrush(missedColor);
     HBRUSH gotItBrush = CreateSolidBrush(gotItColor);
@@ -339,6 +366,42 @@ static void DrawAnswerControls(
     DeleteObject(gotItBrush);
 }
 
+void UpdateFlashcardHover(
+    Flashcard *card,
+    POINT mousePosition
+)
+{
+    card->hoverTarget = CARD_HOVER_NONE;
+    
+    if (!PtInRect(&card->bounds, mousePosition))
+    {
+        return;
+    }
+    
+    card->hoverTarget = CARD_HOVER_SURFACE;
+    
+    if (card->visibleSide == CARD_BACK)
+    {
+        RECT missedRect;
+        RECT gotItRect;
+        
+        GetAnswerButtonRects(
+            card,
+            &missedRect,
+            &gotItRect
+        );
+        
+        if (PtInRect(&missedRect, mousePosition))
+        {
+            card->hoverTarget = CARD_HOVER_MISSED;
+        }
+        else if (PtInRect(&gotItRect, mousePosition))
+        {
+            card->hoverTarget = CARD_HOVER_GOT_IT;
+        }
+    }
+}
+
 void BeginFlashcardPress(
     Flashcard *card,
     POINT mousePosition
@@ -422,6 +485,7 @@ void InitializeApp(HWND hwnd, AppState *app)
     app->card.hits = 0;
     app->card.misses = 0;
     
+    app->card.hoverTarget = CARD_HOVER_NONE;
     app->card.pressTarget = CARD_PRESS_NONE;
     
     snprintf(

@@ -11,6 +11,14 @@ typedef enum CardSide
     CARD_BACK
 } CardSide;
 
+typedef enum CardHoverTarget
+{
+    CARD_HOVER_NONE = 0,
+    CARD_HOVER_SURFACE,
+    CARD_HOVER_MISSED,
+    CARD_HOVER_GOT_IT
+} CardHoverTarget;
+
 typedef enum CardPressTarget
 {
     CARD_PRESS_NONE = 0,
@@ -40,6 +48,7 @@ typedef struct Flashcard
     RECT missedButtonRect;
     RECT gotItButtonRect;
     
+    CardHoverTarget hoverTarget;
     CardPressTarget pressTarget;
 } Flashcard;
 
@@ -57,6 +66,11 @@ typedef struct AppState
     BOOL trackingMouseLeave;
     Deck deck;
 } AppState;
+
+void UpdateFlashcardHover(
+    Flashcard *card,
+    POINT mousePosition
+);
 
 void BeginFlashcardPress(
     Flashcard *card,

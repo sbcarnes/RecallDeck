@@ -119,11 +119,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             else
             {
-                BOOL wasHovered = app.card.isHovered;
+                /*BOOL wasHovered = app.card.isHovered;
             
                 app.card.isHovered = PtInRect(&app.card.bounds, mousePosition);
                 
                 if (app.card.isHovered != wasHovered)
+                {
+                    InvalidateRect(
+                        hwnd,
+                        &app.card.bounds,
+                        FALSE
+                    );
+                }*/
+                CardHoverTarget oldHover = app.card.hoverTarget;
+                
+                UpdateFlashcardHover(
+                    &app.card,
+                    mousePosition
+                );
+                
+                if (app.card.hoverTarget != oldHover)
                 {
                     InvalidateRect(
                         hwnd,
@@ -218,6 +233,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_MOUSELEAVE:
         {
             app.trackingMouseLeave = FALSE;
+            app.card.hoverTarget = CARD_HOVER_NONE;
             
             if (app.card.isHovered)
             {
