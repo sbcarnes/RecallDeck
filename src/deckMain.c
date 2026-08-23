@@ -86,7 +86,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
             }
             
-            if (app.card.isPressed)
+            if (app.card.isPressed && app.card.pressTarget == CARD_PRESS_SURFACE)
             {
                 RECT oldBounds = app.card.bounds;
                 
@@ -146,6 +146,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             if (PtInRect(&app.card.bounds, mousePosition))
             {
+                BeginFlashcardPress(&app.card, mousePosition);
+                
                 app.card.isPressed = TRUE;
                 app.card.wasDragged = FALSE;
                 
@@ -205,6 +207,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     );
                 }
                 
+                app.card.pressTarget = CARD_PRESS_NONE;
+                app.card.isPressed = FALSE;
                 app.card.wasDragged = FALSE;
                 
                 

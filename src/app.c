@@ -52,11 +52,27 @@ static void DrawCardBackground(
     
     if (card->visibleSide == CARD_FRONT)
     {
-        cardColor = RGB(235, 242, 248); /* subtle cool blue-gray */
+        /* subtle cool blue-gray */
+        if (card->pressTarget == CARD_PRESS_SURFACE)
+        {
+            cardColor = RGB(210, 220, 228);
+        }
+        else
+        {
+            cardColor = RGB(235, 242, 248);
+        }
     }
     else
     {
-        cardColor = RGB(240, 244, 232); /* subtle warm green-gray */
+        /* subtle warm green-gray */
+        if (card->pressTarget == CARD_PRESS_SURFACE)
+        {
+            cardColor = RGB(216, 222, 207);
+        }
+        else
+        {
+            cardColor = RGB(240, 244, 232);
+        }
     }
     
     HBRUSH cardBrush = CreateSolidBrush(cardColor);
@@ -220,8 +236,18 @@ static void DrawAnswerControls(
         &gotItRect
     );
     
-    HBRUSH missedBrush = CreateSolidBrush(RGB(185, 85, 85));
-    HBRUSH gotItBrush = CreateSolidBrush(RGB(70, 125, 80));
+    COLORREF missedColor =
+        card->pressTarget == CARD_PRESS_MISSED
+            ? RGB(155, 65, 65)
+            : RGB(185, 85, 85);
+    
+    COLORREF gotItColor =
+        card->pressTarget == CARD_PRESS_GOT_IT
+            ? RGB(50, 100, 60)
+            : RGB(70, 125, 80);
+    
+    HBRUSH missedBrush = CreateSolidBrush(missedColor);
+    HBRUSH gotItBrush = CreateSolidBrush(gotItColor);
     
     if (missedBrush == NULL || gotItBrush == NULL)
     {
@@ -313,6 +339,35 @@ static void DrawAnswerControls(
     DeleteObject(gotItBrush);
 }
 
+void BeginFlashcardPress(
+    Flashcard *card,
+    POINT mousePosition
+)
+{
+    card->pressTarget = CARD_PRESS_SURFACE;
+    
+    if (card->visibleSide == CARD_BACK)
+    {
+        RECT missedRect;
+        RECT gotItRect;
+        
+        GetAnswerButtonRects(
+            card,
+            &missedRect,
+            &gotItRect
+        );
+        
+        if (PtInRect(&missedRect, mousePosition))
+        {
+            card->pressTarget = CARD_PRESS_MISSED;
+        }
+        else if (PtInRect(&gotItRect, mousePosition))
+        {
+            card->pressTarget = CARD_PRESS_GOT_IT;
+        }
+    }
+}
+
 void HandleFlashcardClick(
     Flashcard *card,
     POINT mousePosition
@@ -366,6 +421,8 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     app->card.hits = 0;
     app->card.misses = 0;
+    
+    app->card.pressTarget = CARD_PRESS_NONE;
     
     snprintf(
         app->card.frontText,
