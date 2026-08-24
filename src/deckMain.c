@@ -29,6 +29,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             HDC memDC = CreateCompatibleDC(hdc);
             
+            Flashcard *card = GetCurrentCard(&app.deck);
+            
             HBITMAP memBitmap = CreateCompatibleBitmap(
                 hdc,
                 clientRect.right,
@@ -43,9 +45,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 (HBRUSH)(COLOR_WINDOW + 1)
             );
             
-            DrawFlashcard(memDC, &app.card);
+            DrawFlashcard(memDC, card);
             
-            DrawDiagnostics(memDC, &clientRect, &app.card);
+            DrawDiagnostics(memDC, &clientRect, card);
             
             BitBlt(
                 hdc,
@@ -72,6 +74,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 GET_Y_LPARAM(lParam)
             };
             
+            Flashcard *card = GetCurrentCard(&app.deck);
+            
             if (!app.trackingMouseLeave)
             {
                 TRACKMOUSEEVENT tme = {0};
@@ -86,63 +90,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
             }
             
-            if (app.card.isPressed && app.card.pressTarget == CARD_PRESS_SURFACE)
+            if (card->isPressed && card->pressTarget == CARD_PRESS_SURFACE)
             {
-                RECT oldBounds = app.card.bounds;
+                RECT oldBounds = card->bounds;
                 
-                int newLeft = mousePosition.x - app.card.dragOffset.x;
+                int newLeft = mousePosition.x - card->dragOffset.x;
                 
-                int newTop = mousePosition.y - app.card.dragOffset.y;
+                int newTop = mousePosition.y - card->dragOffset.y;
                 
-                int deltaX = newLeft - app.card.bounds.left;
+                int deltaX = newLeft - card->bounds.left;
                 
-                int deltaY = newTop - app.card.bounds.top;
+                int deltaY = newTop - card->bounds.top;
                 
-                
-                
-                /*if (app.card.visibleSide == CARD_FRONT)
-                {
-                    app.card.visibleSide = CARD_BACK;
-                }
-                else
-                {
-                    app.card.visibleSide = CARD_FRONT;
-                }*/
                 
                 if (deltaX != 0 || deltaY != 0)
                 {
-                    app.card.wasDragged = TRUE;
+                    card->wasDragged = TRUE;
                 }
-                OffsetRect(&app.card.bounds, deltaX, deltaY);
+                OffsetRect(&card->bounds, deltaX, deltaY);
                 InvalidateRect(hwnd, &oldBounds, FALSE);
-                InvalidateRect(hwnd, &app.card.bounds, FALSE);
+                InvalidateRect(hwnd, &card->bounds, FALSE);
             }
             else
             {
-                /*BOOL wasHovered = app.card.isHovered;
-            
-                app.card.isHovered = PtInRect(&app.card.bounds, mousePosition);
                 
-                if (app.card.isHovered != wasHovered)
-                {
-                    InvalidateRect(
-                        hwnd,
-                        &app.card.bounds,
-                        FALSE
-                    );
-                }*/
-                CardHoverTarget oldHover = app.card.hoverTarget;
+                CardHoverTarget oldHover = card->hoverTarget;
                 
                 UpdateFlashcardHover(
-                    &app.card,
+                    card,
                     mousePosition
                 );
                 
-                if (app.card.hoverTarget != oldHover)
+                if (card->hoverTarget != oldHover)
                 {
                     InvalidateRect(
                         hwnd,
-                        &app.card.bounds,
+                        &card->bounds,
                         FALSE
                     );
                 }
@@ -159,24 +142,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
               GET_Y_LPARAM(lParam)
             };
             
-            if (PtInRect(&app.card.bounds, mousePosition))
+            Flashcard *card = GetCurrentCard(&app.deck);
+            
+            if (PtInRect(&card->bounds, mousePosition))
             {
-                BeginFlashcardPress(&app.card, mousePosition);
+                BeginFlashcardPress(card, mousePosition);
                 
-                app.card.isPressed = TRUE;
-                app.card.wasDragged = FALSE;
+                card->isPressed = TRUE;
+                card->wasDragged = FALSE;
                 
-                app.card.dragOffset.x =
-                    mousePosition.x - app.card.bounds.left;
+                card->dragOffset.x =
+                    mousePosition.x - card->bounds.left;
                 
-                app.card.dragOffset.y =
-                    mousePosition.y - app.card.bounds.top;
+                card->dragOffset.y =
+                    mousePosition.y - card->bounds.top;
                     
                 SetCapture(hwnd);
                 
                 InvalidateRect(
                     hwnd,
-                    &app.card.bounds,
+                    &card->bounds,
                     FALSE
                 );
             }
@@ -184,7 +169,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_LBUTTONUP:
         {
-            if (app.card.isPressed)
+            Flashcard *card = GetCurrentCard(&app.deck);
+            
+            if (card->isPressed)
             {
                 POINT mousePosition =
                 {
@@ -193,17 +180,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 };
                 
                 BOOL isCardClick =
-                    !app.card.wasDragged &&
-                    PtInRect(&app.card.bounds, mousePosition);
+                    !card->wasDragged &&
+                    PtInRect(&card->bounds, mousePosition);
                 
-                app.card.isPressed = FALSE;
+                card->isPressed = FALSE;
                 
                 ReleaseCapture();
                 
                 if (isCardClick)
                 {
                     HandleFlashcardClick(
-                        &app.card,
+                        card,
                         mousePosition
                     );
                     
@@ -217,14 +204,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 {
                     InvalidateRect(
                         hwnd,
-                        &app.card.bounds,
+                        &card->bounds,
                         FALSE
                     );
                 }
                 
-                app.card.pressTarget = CARD_PRESS_NONE;
-                app.card.isPressed = FALSE;
-                app.card.wasDragged = FALSE;
+                card->pressTarget = CARD_PRESS_NONE;
+                card->isPressed = FALSE;
+                card->wasDragged = FALSE;
                 
                 
             }
@@ -232,16 +219,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_MOUSELEAVE:
         {
-            app.trackingMouseLeave = FALSE;
-            app.card.hoverTarget = CARD_HOVER_NONE;
+            Flashcard *card = GetCurrentCard(&app.deck);
             
-            if (app.card.isHovered)
+            CardHoverTarget oldHover = card->hoverTarget;
+            
+            app.trackingMouseLeave = FALSE;
+            
+            card->hoverTarget = CARD_HOVER_NONE;
+            
+            if (oldHover != CARD_HOVER_NONE)
             {
-                app.card.isHovered = FALSE;
-                
                 InvalidateRect(
                     hwnd,
-                    &app.card.bounds,
+                    &card->bounds,
                     FALSE
                 );
             }

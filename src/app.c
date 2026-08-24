@@ -468,35 +468,40 @@ void InitializeApp(HWND hwnd, AppState *app)
 {
     GetClientRect(hwnd, &app->clientRect);
     
+    app->deck.cardCount = 1;
+    app->deck.currentIndex = 0;
+    
+    Flashcard *card = &app->deck.cards[0];
+    
     SetRect(
-        &app->card.bounds,
+        &card->bounds,
         80,
         80,
         420,
         280
     );
     
-    app->card.isHovered = FALSE;
-    app->card.isPressed = FALSE;
+    card->isHovered = FALSE;
+    card->isPressed = FALSE;
     
-    app->card.visibleSide = CARD_FRONT;
-    app->card.wasDragged = FALSE;
+    card->visibleSide = CARD_FRONT;
+    card->wasDragged = FALSE;
     
-    app->card.hits = 0;
-    app->card.misses = 0;
+    card->hits = 0;
+    card->misses = 0;
     
-    app->card.hoverTarget = CARD_HOVER_NONE;
-    app->card.pressTarget = CARD_PRESS_NONE;
+    card->hoverTarget = CARD_HOVER_NONE;
+    card->pressTarget = CARD_PRESS_NONE;
     
     snprintf(
-        app->card.frontText,
-        sizeof(app->card.frontText),
+        card->frontText,
+        sizeof(card->frontText),
         "What message reports mouse movement?"
     );
             
     snprintf(
-        app->card.backText,
-        sizeof(app->card.backText),
+        card->backText,
+        sizeof(card->backText),
         "WM_MOUSEMOVE"
     );
 }
@@ -519,6 +524,13 @@ void DrawFlashcard(
         DrawAnswerControls(hdc, card);
     }
     
+}
+
+Flashcard *GetCurrentCard(
+    Deck *deck
+)
+{
+    return &deck->cards[deck->currentIndex];
 }
 
 void DrawDiagnostics(

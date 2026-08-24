@@ -62,7 +62,7 @@ typedef struct Deck
 typedef struct AppState
 {
     RECT clientRect;
-    Flashcard card;
+    //Flashcard card;
     BOOL trackingMouseLeave;
     Deck deck;
 } AppState;
@@ -93,6 +93,10 @@ void DrawDiagnostics(
     HDC hdc,
     const RECT *clientRect,
     const Flashcard *card
+);
+
+Flashcard *GetCurrentCard(
+    Deck *deck
 );
 
 #endif
