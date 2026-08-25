@@ -468,10 +468,12 @@ void InitializeApp(HWND hwnd, AppState *app)
 {
     GetClientRect(hwnd, &app->clientRect);
     
-    app->deck.cardCount = 1;
-    app->deck.currentIndex = 0;
+    app->deck.cardCount = 2;
+    app->deck.currentIndex = 1;
     
     Flashcard *card = &app->deck.cards[0];
+    
+    Flashcard *secondCard = &app->deck.cards[1];
     
     SetRect(
         &card->bounds,
@@ -490,19 +492,37 @@ void InitializeApp(HWND hwnd, AppState *app)
     card->hits = 0;
     card->misses = 0;
     
-    card->hoverTarget = CARD_HOVER_NONE;
-    card->pressTarget = CARD_PRESS_NONE;
+    
+    SetRect(
+        &secondCard->bounds,
+        80,
+        80,
+        420,
+        280
+    );
+    
+    secondCard->isHovered = FALSE;
+    secondCard->isPressed = FALSE;
+    
+    secondCard->visibleSide = CARD_FRONT;
+    secondCard->wasDragged = FALSE;
+    
+    secondCard->hits = 0;
+    secondCard->misses = 0;
+    
+    secondCard->hoverTarget = CARD_HOVER_NONE;
+    secondCard->pressTarget = CARD_PRESS_NONE;
     
     snprintf(
-        card->frontText,
-        sizeof(card->frontText),
-        "What message reports mouse movement?"
+        secondCard->frontText,
+        sizeof(secondCard->frontText),
+        "What message is sent when a window needs repainting?"
     );
             
     snprintf(
-        card->backText,
-        sizeof(card->backText),
-        "WM_MOUSEMOVE"
+        secondCard->backText,
+        sizeof(secondCard->backText),
+        "WM_PAINT"
     );
 }
 
