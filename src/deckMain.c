@@ -47,7 +47,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             DrawFlashcard(memDC, card);
             
-            DrawDiagnostics(memDC, &clientRect, card);
+            DrawDiagnostics(memDC, &clientRect, &app.deck);
             
             BitBlt(
                 hdc,
@@ -189,10 +189,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 
                 if (isCardClick)
                 {
-                    HandleFlashcardClick(
+                    BOOL reviewCompleted = HandleFlashcardClick(
                         card,
                         mousePosition
                     );
+                    
+                    if (reviewCompleted)
+                    {
+                        card->visibleSide = CARD_FRONT;
+                        
+                        AdvanceDeck(
+                            &app.deck
+                        );
+                    }
                     
                     InvalidateRect(
                         hwnd,

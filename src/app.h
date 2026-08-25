@@ -77,7 +77,7 @@ void BeginFlashcardPress(
     POINT mousePosition
 );
 
-void HandleFlashcardClick(
+BOOL HandleFlashcardClick(
     Flashcard *card,
     POINT mousePosition
 );
@@ -92,8 +92,10 @@ void DrawFlashcard(
 void DrawDiagnostics(
     HDC hdc,
     const RECT *clientRect,
-    const Flashcard *card
+    const Deck *deck
 );
+
+void AdvanceDeck(Deck *deck);
 
 Flashcard *GetCurrentCard(
     Deck *deck

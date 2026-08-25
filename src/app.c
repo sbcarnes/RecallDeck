@@ -431,7 +431,7 @@ void BeginFlashcardPress(
     }
 }
 
-void HandleFlashcardClick(
+BOOL HandleFlashcardClick(
     Flashcard *card,
     POINT mousePosition
 )
@@ -439,7 +439,7 @@ void HandleFlashcardClick(
     if (card->visibleSide == CARD_FRONT)
     {
         card->visibleSide = CARD_BACK;
-        return;
+        return FALSE;
     }
     
     RECT missedRect;
@@ -454,14 +454,15 @@ void HandleFlashcardClick(
     if (PtInRect(&missedRect, mousePosition))
     {
         card->misses++;
-        card->visibleSide = CARD_FRONT;
+        return TRUE;
     }
     else if (PtInRect(&gotItRect, mousePosition))
     {
         card->hits++;
-        card->visibleSide = CARD_FRONT;
+        return TRUE;
     }
     
+    return FALSE;
 }
 
 void InitializeApp(HWND hwnd, AppState *app)
@@ -469,7 +470,7 @@ void InitializeApp(HWND hwnd, AppState *app)
     GetClientRect(hwnd, &app->clientRect);
     
     app->deck.cardCount = 2;
-    app->deck.currentIndex = 1;
+    app->deck.currentIndex = 0;
     
     Flashcard *card = &app->deck.cards[0];
     
@@ -492,6 +493,21 @@ void InitializeApp(HWND hwnd, AppState *app)
     card->hits = 0;
     card->misses = 0;
     
+    
+    card->hoverTarget = CARD_HOVER_NONE;
+    card->pressTarget = CARD_PRESS_NONE;
+    
+    snprintf(
+        card->frontText,
+        sizeof(card->frontText),
+        "What message reports mouse movement?"
+    );
+            
+    snprintf(
+        card->backText,
+        sizeof(card->backText),
+        "WM_MOUSEMOVE"
+    );
     
     SetRect(
         &secondCard->bounds,
@@ -546,6 +562,21 @@ void DrawFlashcard(
     
 }
 
+void AdvanceDeck(Deck *deck)
+{
+    if (deck->cardCount == 0)
+    {
+        return;
+    }
+    
+    deck->currentIndex++;
+    
+    if (deck->currentIndex >= deck->cardCount)
+    {
+        deck->currentIndex = 0;
+    }
+}
+
 Flashcard *GetCurrentCard(
     Deck *deck
 )
@@ -556,13 +587,13 @@ Flashcard *GetCurrentCard(
 void DrawDiagnostics(
     HDC hdc,
     const RECT *clientRect,
-    const Flashcard *card
+    const Deck *deck
 )
 {
     RECT panelRect;
     
-    int panelWidth = 180;
-    int panelHeight = 110;
+    int panelWidth = 240;
+    int panelHeight = 130;
     int margin = 20;
     
     SetRect(
@@ -600,15 +631,38 @@ void DrawDiagnostics(
         -12
     );
     
-    char diagnosticText[128];
+    char diagnosticText[256];
     
-    snprintf(
+    int used = snprintf(
         diagnosticText,
         sizeof(diagnosticText),
-        "CARD DEBUG\n\nHits: %u\nMisses: %u",
-        card->hits,
-        card->misses
+        "CARD DEBUG\n\n"
     );
+    
+    for (size_t i = 0; i < deck->cardCount; i++)
+    {
+        if (used < 0 || (size_t)used >= sizeof(diagnosticText))
+        {
+            break;
+        }
+        
+        const Flashcard *card = &deck->cards[i];
+        
+        int added = snprintf(
+            diagnosticText + used,
+            sizeof(diagnosticText) - (size_t)used,
+            "%c [%zu] Hits: %u Misses: %u\n",
+            i == deck->currentIndex ? '>' : ' ',
+            i, card->hits, card->misses
+        );
+        
+        if (added < 0)
+        {
+            break;
+        }
+        
+        used += added;
+    }
     
     int oldBackgroundMode =
         SetBkMode(
