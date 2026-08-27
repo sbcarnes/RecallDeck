@@ -6,6 +6,22 @@ static void DrawCardText(HDC hdc,  const Flashcard *card);
 static void DrawRevealHint(HDC hdc, const Flashcard *card);
 static void DrawAnswerControls(HDC hdc, const Flashcard *card);
 
+static const FlashcardSeed starterCards[] =
+{
+    {
+        "What message reports mouse movement?",
+        "WM_MOUSEMOVE"
+    },
+    {
+        "What message is sent when a window needs repainting?",
+        "WM_PAINT"
+    },
+    {
+        "What message is sent when the left mouse button is pressed?",
+        "WM_LBUTTONDOWN"
+    }
+};
+
 static void InitializeFlashcard(
     Flashcard *card,
     const char *frontText,
@@ -509,27 +525,20 @@ void InitializeApp(HWND hwnd, AppState *app)
 {
     GetClientRect(hwnd, &app->clientRect);
     
-    app->deck.cardCount = 3;
+    app->deck.cardCount =
+        sizeof(starterCards) /
+        sizeof(starterCards[0]);
+    
     app->deck.currentIndex = 0;
     
-    InitializeFlashcard(
-        &app->deck.cards[0],
-        "What message reports mouse movement?",
-        "WM_MOUSEMOVE"
-    );
-    
-    InitializeFlashcard(
-        &app->deck.cards[1],
-        "What message is sent when a window needs repainting?",
-        "WM_PAINT"
-    );
-    
-    InitializeFlashcard(
-        &app->deck.cards[2],
-        "What message is sent when the left mouse button is pressed?",
-        "WM_LBUTTONDOWN"
-    );
-    
+    for (size_t i = 0; i < app->deck.cardCount; i++)
+    {
+        InitializeFlashcard(
+            &app->deck.cards[i],
+            starterCards[i].frontText,
+            starterCards[i].backText
+        );
+    }
 }
 
 void DrawFlashcard(

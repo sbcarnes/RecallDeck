@@ -27,6 +27,12 @@ typedef enum CardPressTarget
     CARD_PRESS_GOT_IT
 } CardPressTarget;
 
+typedef struct FlashcardSeed
+{
+    const char *frontText;
+    const char *backText;
+} FlashcardSeed;
+
 typedef struct Flashcard
 {
     RECT bounds;
