@@ -6,6 +6,46 @@ static void DrawCardText(HDC hdc,  const Flashcard *card);
 static void DrawRevealHint(HDC hdc, const Flashcard *card);
 static void DrawAnswerControls(HDC hdc, const Flashcard *card);
 
+static void InitializeFlashcard(
+    Flashcard *card,
+    const char *frontText,
+    const char *backText
+)
+{
+    SetRect(
+        &card->bounds,
+        80,
+        80,
+        420,
+        280
+    );
+    
+    card->visibleSide = CARD_FRONT;
+    
+    card->isPressed = FALSE;
+    card->wasDragged = FALSE;
+    
+    card->pressTarget = CARD_PRESS_NONE;
+    card->hoverTarget = CARD_HOVER_NONE;
+    
+    card->hits = 0;
+    card-> misses = 0;
+    
+    snprintf(
+        card->frontText,
+        sizeof(card->frontText),
+        "%s",
+        frontText
+    );
+    
+    snprintf(
+        card->backText,
+        sizeof(card->backText),
+        "%s",
+        backText
+    );
+}
+
 static void GetAnswerButtonRects(
     const Flashcard *card,
     RECT *missedRect,
@@ -469,77 +509,27 @@ void InitializeApp(HWND hwnd, AppState *app)
 {
     GetClientRect(hwnd, &app->clientRect);
     
-    app->deck.cardCount = 2;
+    app->deck.cardCount = 3;
     app->deck.currentIndex = 0;
     
-    Flashcard *card = &app->deck.cards[0];
-    
-    Flashcard *secondCard = &app->deck.cards[1];
-    
-    SetRect(
-        &card->bounds,
-        80,
-        80,
-        420,
-        280
-    );
-    
-    card->isHovered = FALSE;
-    card->isPressed = FALSE;
-    
-    card->visibleSide = CARD_FRONT;
-    card->wasDragged = FALSE;
-    
-    card->hits = 0;
-    card->misses = 0;
-    
-    
-    card->hoverTarget = CARD_HOVER_NONE;
-    card->pressTarget = CARD_PRESS_NONE;
-    
-    snprintf(
-        card->frontText,
-        sizeof(card->frontText),
-        "What message reports mouse movement?"
-    );
-            
-    snprintf(
-        card->backText,
-        sizeof(card->backText),
+    InitializeFlashcard(
+        &app->deck.cards[0],
+        "What message reports mouse movement?",
         "WM_MOUSEMOVE"
     );
     
-    SetRect(
-        &secondCard->bounds,
-        80,
-        80,
-        420,
-        280
-    );
-    
-    secondCard->isHovered = FALSE;
-    secondCard->isPressed = FALSE;
-    
-    secondCard->visibleSide = CARD_FRONT;
-    secondCard->wasDragged = FALSE;
-    
-    secondCard->hits = 0;
-    secondCard->misses = 0;
-    
-    secondCard->hoverTarget = CARD_HOVER_NONE;
-    secondCard->pressTarget = CARD_PRESS_NONE;
-    
-    snprintf(
-        secondCard->frontText,
-        sizeof(secondCard->frontText),
-        "What message is sent when a window needs repainting?"
-    );
-            
-    snprintf(
-        secondCard->backText,
-        sizeof(secondCard->backText),
+    InitializeFlashcard(
+        &app->deck.cards[1],
+        "What message is sent when a window needs repainting?",
         "WM_PAINT"
     );
+    
+    InitializeFlashcard(
+        &app->deck.cards[2],
+        "What message is sent when the left mouse button is pressed?",
+        "WM_LBUTTONDOWN"
+    );
+    
 }
 
 void DrawFlashcard(
