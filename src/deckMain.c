@@ -2,6 +2,7 @@
 #include <windowsx.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "app.h"
 
@@ -260,9 +261,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
-{
+{   
     (void)hPrevInstance;
     (void)lpCmdLine;
+    
+    srand((unsigned int)time(NULL));
     
 	WNDCLASSEX wc;
 	HWND hwnd;

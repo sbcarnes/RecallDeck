@@ -62,6 +62,32 @@ static void InitializeFlashcard(
     );
 }
 
+// Fisher-Yates shuffle (TODO look up later)
+static void ShuffleReviewOrder(
+    Deck *deck
+)
+{
+    if (deck->cardCount < 2)
+    {
+        return;
+    }
+    
+    for (size_t i = deck->cardCount -1; i > 0; i--)
+    {
+        size_t j = (size_t)(rand() % (i + 1));
+        
+        size_t temp = deck->reviewOrder[i];
+        
+        deck->reviewOrder[i] = deck->reviewOrder[j];
+        
+        deck->reviewOrder[j] = temp;
+    }
+    
+    deck->reviewPosition = 0;
+    
+    deck->currentIndex = deck->reviewOrder[0];
+}
+
 static void GetAnswerButtonRects(
     const Flashcard *card,
     RECT *missedRect,
@@ -540,17 +566,15 @@ void InitializeApp(HWND hwnd, AppState *app)
             starterCards[i].backText
         );
         
-        //app->deck.reviewOrder[i] = i;
+        app->deck.reviewOrder[i] = i;
     }
-    
-    app->deck.reviewOrder[0] = 2;
-    app->deck.reviewOrder[1] = 0;
-    app->deck.reviewOrder[2] = 1;
     
     if (app->deck.cardCount > 0)
     {
         app->deck.currentIndex = app->deck.reviewOrder[0];
     }
+    
+    ShuffleReviewOrder(&app->deck);
     
     
 }
@@ -598,6 +622,8 @@ Flashcard *GetCurrentCard(
 {
     return &deck->cards[deck->currentIndex];
 }
+
+
 
 void DrawDiagnostics(
     HDC hdc,
