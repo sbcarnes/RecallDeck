@@ -531,6 +531,7 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     app->deck.currentIndex = 0;
     
+    
     for (size_t i = 0; i < app->deck.cardCount; i++)
     {
         InitializeFlashcard(
@@ -538,7 +539,20 @@ void InitializeApp(HWND hwnd, AppState *app)
             starterCards[i].frontText,
             starterCards[i].backText
         );
+        
+        //app->deck.reviewOrder[i] = i;
     }
+    
+    app->deck.reviewOrder[0] = 2;
+    app->deck.reviewOrder[1] = 0;
+    app->deck.reviewOrder[2] = 1;
+    
+    if (app->deck.cardCount > 0)
+    {
+        app->deck.currentIndex = app->deck.reviewOrder[0];
+    }
+    
+    
 }
 
 void DrawFlashcard(
@@ -568,12 +582,14 @@ void AdvanceDeck(Deck *deck)
         return;
     }
     
-    deck->currentIndex++;
+    deck->reviewPosition++;
     
-    if (deck->currentIndex >= deck->cardCount)
+    if (deck->reviewPosition >= deck->cardCount)
     {
-        deck->currentIndex = 0;
+        deck->reviewPosition = 0;
     }
+    
+    deck->currentIndex = deck->reviewOrder[deck->reviewPosition];
 }
 
 Flashcard *GetCurrentCard(

@@ -61,8 +61,12 @@ typedef struct Flashcard
 typedef struct Deck
 {
     Flashcard cards[MAX_CARDS];
+    
     size_t cardCount;
     size_t currentIndex;
+    
+    size_t reviewOrder[MAX_CARDS];
+    size_t reviewPosition;
 } Deck;
 
 typedef struct AppState
