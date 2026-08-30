@@ -557,6 +557,7 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     app->deck.currentIndex = 0;
     
+    app->mode = APP_MODE_REVIEW;
     
     for (size_t i = 0; i < app->deck.cardCount; i++)
     {
@@ -599,21 +600,23 @@ void DrawFlashcard(
     
 }
 
-void AdvanceDeck(Deck *deck)
+BOOL AdvanceDeck(Deck *deck)
 {
     if (deck->cardCount == 0)
     {
-        return;
+        return FALSE;
+    }
+    
+    if (deck->reviewPosition + 1 >= deck->cardCount)
+    {
+        return FALSE;
     }
     
     deck->reviewPosition++;
     
-    if (deck->reviewPosition >= deck->cardCount)
-    {
-        deck->reviewPosition = 0;
-    }
-    
     deck->currentIndex = deck->reviewOrder[deck->reviewPosition];
+    
+    return TRUE;
 }
 
 Flashcard *GetCurrentCard(

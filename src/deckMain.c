@@ -30,8 +30,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             HDC memDC = CreateCompatibleDC(hdc);
             
-            Flashcard *card = GetCurrentCard(&app.deck);
-            
             HBITMAP memBitmap = CreateCompatibleBitmap(
                 hdc,
                 clientRect.right,
@@ -46,7 +44,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 (HBRUSH)(COLOR_WINDOW + 1)
             );
             
-            DrawFlashcard(memDC, card);
+            if (app.mode == APP_MODE_REVIEW)
+            {
+                DrawFlashcard(memDC, GetCurrentCard(&app.deck));
+            }
+            else
+            {
+                RECT messageRect = clientRect;
+                
+                DrawText(
+                    memDC,
+                    "Review Complete",
+                    -1,
+                    &messageRect,
+                    DT_CENTER | DT_VCENTER | DT_SINGLELINE
+                );
+            }
             
             DrawDiagnostics(memDC, &clientRect, &app.deck);
             
@@ -69,6 +82,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_MOUSEMOVE:
         {
+            if (app.mode != APP_MODE_REVIEW)
+            {
+                break;
+            }
             POINT mousePosition =
             {
                 GET_X_LPARAM(lParam),
@@ -137,6 +154,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_LBUTTONDOWN:
         {
+            if (app.mode != APP_MODE_REVIEW)
+            {
+                break;
+            }
+            
             POINT mousePosition =
             {
               GET_X_LPARAM(lParam),
@@ -170,6 +192,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_LBUTTONUP:
         {
+            if (app.mode != APP_MODE_REVIEW)
+            {
+                break;
+            }
+            
             Flashcard *card = GetCurrentCard(&app.deck);
             
             if (card->isPressed)
@@ -199,9 +226,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     {
                         card->visibleSide = CARD_FRONT;
                         
-                        AdvanceDeck(
-                            &app.deck
-                        );
+                        if (!AdvanceDeck(&app.deck))
+                        {
+                            app.mode = APP_MODE_SESSION_COMPLETE;
+                        }
                     }
                     
                     InvalidateRect(

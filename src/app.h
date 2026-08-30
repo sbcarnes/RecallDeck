@@ -27,6 +27,12 @@ typedef enum CardPressTarget
     CARD_PRESS_GOT_IT
 } CardPressTarget;
 
+typedef enum AppMode
+{
+    APP_MODE_REVIEW = 0,
+    APP_MODE_SESSION_COMPLETE
+} AppMode;
+
 typedef struct FlashcardSeed
 {
     const char *frontText;
@@ -72,9 +78,10 @@ typedef struct Deck
 typedef struct AppState
 {
     RECT clientRect;
-    //Flashcard card;
     BOOL trackingMouseLeave;
     Deck deck;
+    
+    AppMode mode;
 } AppState;
 
 void UpdateFlashcardHover(
@@ -105,7 +112,7 @@ void DrawDiagnostics(
     const Deck *deck
 );
 
-void AdvanceDeck(Deck *deck);
+BOOL AdvanceDeck(Deck *deck);
 
 Flashcard *GetCurrentCard(
     Deck *deck
