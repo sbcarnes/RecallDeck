@@ -84,6 +84,12 @@ typedef struct AppState
     AppMode mode;
 } AppState;
 
+BOOL HandleSessionCompleteClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
+);
+
 void UpdateFlashcardHover(
     Flashcard *card,
     POINT mousePosition
@@ -110,6 +116,11 @@ void DrawDiagnostics(
     HDC hdc,
     const RECT *clientRect,
     const Deck *deck
+);
+
+void DrawSessionComplete(
+    HDC hdc,
+    const RECT *clientRect
 );
 
 BOOL AdvanceDeck(Deck *deck);

@@ -50,15 +50,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             else
             {
-                RECT messageRect = clientRect;
-                
-                DrawText(
-                    memDC,
-                    "Review Complete",
-                    -1,
-                    &messageRect,
-                    DT_CENTER | DT_VCENTER | DT_SINGLELINE
-                );
+                DrawSessionComplete(memDC, &clientRect);
             }
             
             DrawDiagnostics(memDC, &clientRect, &app.deck);
@@ -192,6 +184,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_LBUTTONUP:
         {
+            POINT mousePosition =
+            {
+                GET_X_LPARAM(lParam),
+                GET_Y_LPARAM(lParam)
+            };
+            
+            if (app.mode == APP_MODE_SESSION_COMPLETE)
+            {
+                RECT clientRect;
+                
+                GetClientRect(hwnd, &clientRect);
+                
+                if (HandleSessionCompleteClick(
+                    &app, &clientRect, mousePosition
+                ))
+                {
+                    InvalidateRect(hwnd, NULL, FALSE);
+                }
+                
+                break;
+            }
+            
             if (app.mode != APP_MODE_REVIEW)
             {
                 break;
@@ -201,12 +215,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             if (card->isPressed)
             {
-                POINT mousePosition =
-                {
-                    GET_X_LPARAM(lParam),
-                    GET_Y_LPARAM(lParam)
-                };
-                
                 BOOL isCardClick =
                     !card->wasDragged &&
                     PtInRect(&card->bounds, mousePosition);
@@ -250,8 +258,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 card->pressTarget = CARD_PRESS_NONE;
                 card->isPressed = FALSE;
                 card->wasDragged = FALSE;
-                
-                
             }
         }
         break;

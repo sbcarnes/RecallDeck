@@ -62,6 +62,27 @@ static void InitializeFlashcard(
     );
 }
 
+static void GetReviewAgainButtonRect(
+    const RECT *clientRect,
+    RECT *buttonRect
+)
+{
+    int buttonWidth = 160;
+    int buttonHeight = 40;
+    
+    int centerX =
+        (clientRect->left + clientRect->right) / 2;
+    
+    int centerY =
+        (clientRect->top + clientRect->bottom) / 2;
+    
+    SetRect(
+        buttonRect,
+        centerX - buttonWidth / 2, centerY + 30,
+        centerX + buttonWidth / 2, centerY + 30 + buttonHeight
+    );
+}
+
 // Fisher-Yates shuffle (TODO look up later)
 static void ShuffleReviewOrder(
     Deck *deck
@@ -86,6 +107,51 @@ static void ShuffleReviewOrder(
     deck->reviewPosition = 0;
     
     deck->currentIndex = deck->reviewOrder[0];
+}
+
+void RestartReviewSession(
+    AppState *app
+)
+{
+    Deck *deck = &app->deck;
+    
+    if (deck->cardCount == 0)
+    {
+        return;
+    }
+    
+    ShuffleReviewOrder(deck);
+    
+    deck->reviewPosition = 0;
+    
+    deck->currentIndex = deck->reviewOrder[0];
+    
+    app->mode = APP_MODE_REVIEW;
+}
+
+BOOL HandleSessionCompleteClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
+)
+{
+    RECT buttonRect;
+    
+    GetReviewAgainButtonRect(
+        clientRect,
+        &buttonRect
+    );
+    
+    if (!PtInRect(
+        &buttonRect, mousePosition
+    ))
+    {
+        return FALSE;
+    }
+    
+    RestartReviewSession(app);
+    
+    return TRUE;
 }
 
 static void GetAnswerButtonRects(
@@ -724,6 +790,55 @@ void DrawDiagnostics(
     SetBkMode(hdc, oldBackgroundMode);
     
     SelectObject(hdc, oldPen);
+    
+    SelectObject(hdc, oldBrush);
+}
+
+void DrawSessionComplete(
+    HDC hdc,
+    const RECT *clientRect
+)
+{
+    RECT messageRect = *clientRect;
+    
+    messageRect.bottom = (clientRect->top + clientRect->bottom) / 2;
+    
+    DrawText(
+        hdc,
+        "Review Complete",
+        -1,
+        &messageRect,
+        DT_CENTER | DT_BOTTOM | DT_SINGLELINE
+    );
+    
+    RECT buttonRect;
+    
+    GetReviewAgainButtonRect(
+        clientRect,
+        &buttonRect
+    );
+    
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc,
+            GetStockObject(LTGRAY_BRUSH)
+        );
+    
+    Rectangle(
+        hdc,
+        buttonRect.left,
+        buttonRect.top,
+        buttonRect.right,
+        buttonRect.bottom
+    );
+    
+    DrawText(
+        hdc,
+        "Review Again",
+        -1,
+        &buttonRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
     
     SelectObject(hdc, oldBrush);
 }
