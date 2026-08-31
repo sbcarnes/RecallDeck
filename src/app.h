@@ -123,6 +123,12 @@ void DrawSessionComplete(
     const RECT *clientRect
 );
 
+void DrawSessionProgress(
+    HDC hdc,
+    const RECT *clientRect,
+    const Deck *deck
+);
+
 BOOL AdvanceDeck(Deck *deck);
 
 Flashcard *GetCurrentCard(

@@ -47,6 +47,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (app.mode == APP_MODE_REVIEW)
             {
                 DrawFlashcard(memDC, GetCurrentCard(&app.deck));
+                
+                DrawSessionProgress(memDC, &clientRect, &app.deck);
             }
             else
             {

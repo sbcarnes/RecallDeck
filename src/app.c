@@ -842,3 +842,44 @@ void DrawSessionComplete(
     
     SelectObject(hdc, oldBrush);
 }
+
+void DrawSessionProgress(
+    HDC hdc,
+    const RECT *clientRect,
+    const Deck *deck
+)
+{
+    if (deck->cardCount == 0)
+    {
+        return;
+    }
+    
+    RECT progressRect;
+    
+    SetRect(
+        &progressRect,
+        20, 20, 180, 50
+    );
+    
+    char progressText[64];
+    
+    snprintf(
+        progressText,
+        sizeof(progressText),
+        "Card %zu of %zu",
+        deck->reviewPosition + 1,
+        deck->cardCount
+    );
+    
+    int oldBackgroundMode =
+        SetBkMode(hdc, TRANSPARENT);
+    
+    DrawText(hdc,
+        progressText,
+        -1,
+        &progressRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    SetBkMode(hdc, oldBackgroundMode);
+}
