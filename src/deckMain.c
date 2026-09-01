@@ -46,9 +46,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             if (app.mode == APP_MODE_REVIEW)
             {
-                DrawFlashcard(memDC, GetCurrentCard(&app.deck));
+                DrawFlashcard(memDC, GetCurrentCard(&app.deck), &app.cardView);
                 
-                DrawSessionProgress(memDC, &clientRect, &app.deck);
+                DrawSessionProgress(memDC, &app.deck);
             }
             else
             {
@@ -86,7 +86,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 GET_Y_LPARAM(lParam)
             };
             
-            Flashcard *card = GetCurrentCard(&app.deck);
+            FlashcardView *view = &app.cardView;
             
             if (!app.trackingMouseLeave)
             {
@@ -102,42 +102,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
             }
             
-            if (card->isPressed && card->pressTarget == CARD_PRESS_SURFACE)
+            if (view->isPressed && view->pressTarget == CARD_PRESS_SURFACE)
             {
-                RECT oldBounds = card->bounds;
+                RECT oldBounds = view->bounds;
                 
-                int newLeft = mousePosition.x - card->dragOffset.x;
+                int newLeft = mousePosition.x - view->dragOffset.x;
                 
-                int newTop = mousePosition.y - card->dragOffset.y;
+                int newTop = mousePosition.y - view->dragOffset.y;
                 
-                int deltaX = newLeft - card->bounds.left;
+                int deltaX = newLeft - view->bounds.left;
                 
-                int deltaY = newTop - card->bounds.top;
+                int deltaY = newTop - view->bounds.top;
                 
                 
                 if (deltaX != 0 || deltaY != 0)
                 {
-                    card->wasDragged = TRUE;
+                    view->wasDragged = TRUE;
                 }
-                OffsetRect(&card->bounds, deltaX, deltaY);
+                OffsetRect(&view->bounds, deltaX, deltaY);
                 InvalidateRect(hwnd, &oldBounds, FALSE);
-                InvalidateRect(hwnd, &card->bounds, FALSE);
+                InvalidateRect(hwnd, &view->bounds, FALSE);
             }
             else
             {
                 
-                CardHoverTarget oldHover = card->hoverTarget;
+                CardHoverTarget oldHover = view->hoverTarget;
                 
                 UpdateFlashcardHover(
-                    card,
+                    view,
                     mousePosition
                 );
                 
-                if (card->hoverTarget != oldHover)
+                if (view->hoverTarget != oldHover)
                 {
                     InvalidateRect(
                         hwnd,
-                        &card->bounds,
+                        &view->bounds,
                         FALSE
                     );
                 }
@@ -159,26 +159,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
               GET_Y_LPARAM(lParam)
             };
             
-            Flashcard *card = GetCurrentCard(&app.deck);
+            FlashcardView *view = &app.cardView;
             
-            if (PtInRect(&card->bounds, mousePosition))
+            if (PtInRect(&view->bounds, mousePosition))
             {
-                BeginFlashcardPress(card, mousePosition);
+                BeginFlashcardPress(view, mousePosition);
                 
-                card->isPressed = TRUE;
-                card->wasDragged = FALSE;
+                view->isPressed = TRUE;
+                view->wasDragged = FALSE;
                 
-                card->dragOffset.x =
-                    mousePosition.x - card->bounds.left;
+                view->dragOffset.x =
+                    mousePosition.x - view->bounds.left;
                 
-                card->dragOffset.y =
-                    mousePosition.y - card->bounds.top;
+                view->dragOffset.y =
+                    mousePosition.y - view->bounds.top;
                     
                 SetCapture(hwnd);
                 
                 InvalidateRect(
                     hwnd,
-                    &card->bounds,
+                    &view->bounds,
                     FALSE
                 );
             }
@@ -214,27 +214,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             
             Flashcard *card = GetCurrentCard(&app.deck);
+            FlashcardView *view = &app.cardView;
             
-            if (card->isPressed)
+            if (view->isPressed)
             {
                 BOOL isCardClick =
-                    !card->wasDragged &&
-                    PtInRect(&card->bounds, mousePosition);
+                    !view->wasDragged &&
+                    PtInRect(&view->bounds, mousePosition);
                 
-                card->isPressed = FALSE;
+                view->isPressed = FALSE;
                 
                 ReleaseCapture();
                 
                 if (isCardClick)
                 {
                     BOOL reviewCompleted = HandleFlashcardClick(
-                        card,
+                        card, view,
                         mousePosition
                     );
                     
                     if (reviewCompleted)
                     {
-                        card->visibleSide = CARD_FRONT;
+                        view->visibleSide = CARD_FRONT;
                         
                         if (!AdvanceDeck(&app.deck))
                         {
@@ -252,32 +253,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 {
                     InvalidateRect(
                         hwnd,
-                        &card->bounds,
+                        &view->bounds,
                         FALSE
                     );
                 }
                 
-                card->pressTarget = CARD_PRESS_NONE;
-                card->isPressed = FALSE;
-                card->wasDragged = FALSE;
+                view->pressTarget = CARD_PRESS_NONE;
+                view->isPressed = FALSE;
+                view->wasDragged = FALSE;
             }
         }
         break;
         case WM_MOUSELEAVE:
         {
-            Flashcard *card = GetCurrentCard(&app.deck);
+            FlashcardView *view = &app.cardView;
             
-            CardHoverTarget oldHover = card->hoverTarget;
+            CardHoverTarget oldHover = view->hoverTarget;
             
             app.trackingMouseLeave = FALSE;
             
-            card->hoverTarget = CARD_HOVER_NONE;
+            view->hoverTarget = CARD_HOVER_NONE;
             
             if (oldHover != CARD_HOVER_NONE)
             {
                 InvalidateRect(
                     hwnd,
-                    &card->bounds,
+                    &view->bounds,
                     FALSE
                 );
             }

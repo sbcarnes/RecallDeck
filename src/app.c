@@ -1,10 +1,10 @@
 #include "app.h"
 #include <stdio.h>
 
-static void DrawCardBackground(HDC hdc, const Flashcard *card);
-static void DrawCardText(HDC hdc,  const Flashcard *card);
-static void DrawRevealHint(HDC hdc, const Flashcard *card);
-static void DrawAnswerControls(HDC hdc, const Flashcard *card);
+static void DrawCardBackground(HDC hdc, const FlashcardView *view);
+static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
+static void DrawRevealHint(HDC hdc, const FlashcardView *view);
+static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
 
 static const FlashcardSeed starterCards[] =
 {
@@ -25,24 +25,25 @@ static const FlashcardSeed starterCards[] =
 static void InitializeFlashcard(
     Flashcard *card,
     const char *frontText,
-    const char *backText
+    const char *backText,
+    FlashcardView *view
 )
 {
     SetRect(
-        &card->bounds,
+        &view->bounds,
         80,
         80,
         420,
         280
     );
     
-    card->visibleSide = CARD_FRONT;
+    view->visibleSide = CARD_FRONT;
     
-    card->isPressed = FALSE;
-    card->wasDragged = FALSE;
+    view->isPressed = FALSE;
+    view->wasDragged = FALSE;
     
-    card->pressTarget = CARD_PRESS_NONE;
-    card->hoverTarget = CARD_HOVER_NONE;
+    view->pressTarget = CARD_PRESS_NONE;
+    view->hoverTarget = CARD_HOVER_NONE;
     
     card->hits = 0;
     card-> misses = 0;
@@ -155,21 +156,21 @@ BOOL HandleSessionCompleteClick(
 }
 
 static void GetAnswerButtonRects(
-    const Flashcard *card,
+    const FlashcardView *view,
     RECT *missedRect,
     RECT *gotItRect
 )
 {
-    int cardWidth = card->bounds.right - card->bounds.left;
-    int cardHeight = card->bounds.bottom - card->bounds.top;
+    int cardWidth = view->bounds.right - view->bounds.left;
+    int cardHeight = view->bounds.bottom - view->bounds.top;
     
-    int columnLeft = card->bounds.left + (cardWidth * 2 / 3);
+    int columnLeft = view->bounds.left + (cardWidth * 2 / 3);
     
     int buttonMargin = 16;
     int buttonGap = 14;
     
     int buttonLeft = columnLeft + buttonMargin;
-    int buttonRight = card->bounds.right - buttonMargin;
+    int buttonRight = view->bounds.right - buttonMargin;
     
     int availableHeight = cardHeight - (buttonMargin * 2);
     int buttonHeight = (availableHeight - buttonGap) / 2;
@@ -177,35 +178,35 @@ static void GetAnswerButtonRects(
     SetRect(
         missedRect,
         buttonLeft,
-        card->bounds.top + buttonMargin,
+        view->bounds.top + buttonMargin,
         buttonRight,
-        card->bounds.top + buttonMargin + buttonHeight
+        view->bounds.top + buttonMargin + buttonHeight
     );
     
     SetRect(
         gotItRect,
         buttonLeft,
-        card->bounds.top + buttonMargin + buttonHeight + buttonGap,
+        view->bounds.top + buttonMargin + buttonHeight + buttonGap,
         buttonRight,
-        card->bounds.bottom - buttonMargin
+        view->bounds.bottom - buttonMargin
     );
 }
 
 static void DrawCardBackground(
     HDC hdc,
-    const Flashcard *card
+    const FlashcardView *view
 )
 {
     COLORREF cardColor;
     
-    if (card->visibleSide == CARD_FRONT)
+    if (view->visibleSide == CARD_FRONT)
     {
         /* subtle cool blue-gray */
-        if (card->pressTarget == CARD_PRESS_SURFACE)
+        if (view->pressTarget == CARD_PRESS_SURFACE)
         {
             cardColor = RGB(210, 220, 228);
         }
-        else if (card->hoverTarget == CARD_HOVER_SURFACE)
+        else if (view->hoverTarget == CARD_HOVER_SURFACE)
         {
             cardColor = RGB(220, 230, 238);
         }
@@ -217,11 +218,11 @@ static void DrawCardBackground(
     else
     {
         /* subtle warm green-gray */
-        if (card->pressTarget == CARD_PRESS_SURFACE)
+        if (view->pressTarget == CARD_PRESS_SURFACE)
         {
             cardColor = RGB(216, 222, 207);
         }
-        else if (card->hoverTarget == CARD_HOVER_SURFACE)
+        else if (view->hoverTarget == CARD_HOVER_SURFACE)
         {
             cardColor = RGB(228, 233, 219);
         }
@@ -245,10 +246,10 @@ static void DrawCardBackground(
     
     Rectangle(
         hdc,
-        card->bounds.left,
-        card->bounds.top,
-        card->bounds.right,
-        card->bounds.bottom
+        view->bounds.left,
+        view->bounds.top,
+        view->bounds.right,
+        view->bounds.bottom
     );
     
     SelectObject(hdc, oldPen);
@@ -259,15 +260,16 @@ static void DrawCardBackground(
 
 static void DrawCardText(
     HDC hdc,
-    const Flashcard *card
+    const Flashcard *card,
+    const FlashcardView *view
 )
 {
     const char *cardText =
-        card->visibleSide == CARD_FRONT
+        view->visibleSide == CARD_FRONT
             ? card->frontText
             : card->backText;
     
-    RECT contentRect = card->bounds;
+    RECT contentRect = view->bounds;
     
     contentRect.left += 24;
     contentRect.top += 24;
@@ -278,7 +280,7 @@ static void DrawCardText(
             - grading buttons on the back
     */
     
-    if (card-> visibleSide == CARD_FRONT)
+    if (view-> visibleSide == CARD_FRONT)
     {
         contentRect.right -= 24;
         
@@ -288,12 +290,12 @@ static void DrawCardText(
     }
     else
     {
-        int cardWidth = card->bounds.right - card->bounds.left;
+        int cardWidth = view->bounds.right - view->bounds.left;
         
         // Stop answer text before right-hand button column
         
         contentRect.right =
-            card->bounds.left + (cardWidth * 2 / 3) - 16;
+            view->bounds.left + (cardWidth * 2 / 3) - 16;
         
         contentRect.bottom -= 24;
     }
@@ -337,10 +339,10 @@ static void DrawCardText(
 
 static void DrawRevealHint(
     HDC hdc,
-    const Flashcard *card
+    const FlashcardView *view
 )
 {
-    RECT hintRect = card->bounds;
+    RECT hintRect = view->bounds;
     
     hintRect.left += 20;
     hintRect.right -= 20;
@@ -380,14 +382,14 @@ static void DrawRevealHint(
 
 static void DrawAnswerControls(
     HDC hdc,
-    const Flashcard *card
+    const FlashcardView *view
 )
 {
     RECT missedRect;
     RECT gotItRect;
     
     GetAnswerButtonRects(
-        card,
+        view,
         &missedRect,
         &gotItRect
     );
@@ -395,11 +397,11 @@ static void DrawAnswerControls(
     COLORREF missedColor;
     COLORREF gotItColor;
     
-    if (card->pressTarget == CARD_PRESS_MISSED)
+    if (view->pressTarget == CARD_PRESS_MISSED)
     {
         missedColor = RGB(155, 65, 65);
     }
-    else if (card->hoverTarget == CARD_HOVER_MISSED)
+    else if (view->hoverTarget == CARD_HOVER_MISSED)
     {
         missedColor = RGB(170, 75, 75);
     }
@@ -408,11 +410,11 @@ static void DrawAnswerControls(
         missedColor = RGB(185, 85, 85);
     }
     
-    if (card->pressTarget == CARD_PRESS_GOT_IT)
+    if (view->pressTarget == CARD_PRESS_GOT_IT)
     {
         gotItColor = RGB(50, 100, 60);
     }
-    else if (card->hoverTarget == CARD_HOVER_GOT_IT)
+    else if (view->hoverTarget == CARD_HOVER_GOT_IT)
     {
         gotItColor = RGB(60, 112, 70);
     }
@@ -515,78 +517,79 @@ static void DrawAnswerControls(
 }
 
 void UpdateFlashcardHover(
-    Flashcard *card,
+    FlashcardView *view,
     POINT mousePosition
 )
 {
-    card->hoverTarget = CARD_HOVER_NONE;
+    view->hoverTarget = CARD_HOVER_NONE;
     
-    if (!PtInRect(&card->bounds, mousePosition))
+    if (!PtInRect(&view->bounds, mousePosition))
     {
         return;
     }
     
-    card->hoverTarget = CARD_HOVER_SURFACE;
+    view->hoverTarget = CARD_HOVER_SURFACE;
     
-    if (card->visibleSide == CARD_BACK)
+    if (view->visibleSide == CARD_BACK)
     {
         RECT missedRect;
         RECT gotItRect;
         
         GetAnswerButtonRects(
-            card,
+            view,
             &missedRect,
             &gotItRect
         );
         
         if (PtInRect(&missedRect, mousePosition))
         {
-            card->hoverTarget = CARD_HOVER_MISSED;
+            view->hoverTarget = CARD_HOVER_MISSED;
         }
         else if (PtInRect(&gotItRect, mousePosition))
         {
-            card->hoverTarget = CARD_HOVER_GOT_IT;
+            view->hoverTarget = CARD_HOVER_GOT_IT;
         }
     }
 }
 
 void BeginFlashcardPress(
-    Flashcard *card,
+    FlashcardView *view,
     POINT mousePosition
 )
 {
-    card->pressTarget = CARD_PRESS_SURFACE;
+    view->pressTarget = CARD_PRESS_SURFACE;
     
-    if (card->visibleSide == CARD_BACK)
+    if (view->visibleSide == CARD_BACK)
     {
         RECT missedRect;
         RECT gotItRect;
         
         GetAnswerButtonRects(
-            card,
+            view,
             &missedRect,
             &gotItRect
         );
         
         if (PtInRect(&missedRect, mousePosition))
         {
-            card->pressTarget = CARD_PRESS_MISSED;
+            view->pressTarget = CARD_PRESS_MISSED;
         }
         else if (PtInRect(&gotItRect, mousePosition))
         {
-            card->pressTarget = CARD_PRESS_GOT_IT;
+            view->pressTarget = CARD_PRESS_GOT_IT;
         }
     }
 }
 
 BOOL HandleFlashcardClick(
     Flashcard *card,
+    FlashcardView *view,
     POINT mousePosition
 )
 {
-    if (card->visibleSide == CARD_FRONT)
+    if (view->visibleSide == CARD_FRONT)
     {
-        card->visibleSide = CARD_BACK;
+        view->visibleSide = CARD_BACK;
         return FALSE;
     }
     
@@ -594,7 +597,7 @@ BOOL HandleFlashcardClick(
     RECT gotItRect;
     
     GetAnswerButtonRects(
-        card,
+        view,
         &missedRect,
         &gotItRect
     );
@@ -630,7 +633,8 @@ void InitializeApp(HWND hwnd, AppState *app)
         InitializeFlashcard(
             &app->deck.cards[i],
             starterCards[i].frontText,
-            starterCards[i].backText
+            starterCards[i].backText,
+            &app->cardView
         );
         
         app->deck.reviewOrder[i] = i;
@@ -648,20 +652,21 @@ void InitializeApp(HWND hwnd, AppState *app)
 
 void DrawFlashcard(
     HDC hdc,
-    const Flashcard *card
+    const Flashcard *card,
+    const FlashcardView *view
 )
 {
-    DrawCardBackground(hdc, card);
+    DrawCardBackground(hdc, view);
     
-    DrawCardText(hdc, card);
+    DrawCardText(hdc, card, view);
     
-    if (card->visibleSide == CARD_FRONT)
+    if (view->visibleSide == CARD_FRONT)
     {
-        DrawRevealHint(hdc, card);
+        DrawRevealHint(hdc, view);
     }
     else
     {
-        DrawAnswerControls(hdc, card);
+        DrawAnswerControls(hdc, view);
     }
     
 }
@@ -845,7 +850,6 @@ void DrawSessionComplete(
 
 void DrawSessionProgress(
     HDC hdc,
-    const RECT *clientRect,
     const Deck *deck
 )
 {

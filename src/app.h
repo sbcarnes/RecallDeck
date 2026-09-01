@@ -41,28 +41,30 @@ typedef struct FlashcardSeed
 
 typedef struct Flashcard
 {
-    RECT bounds;
-    
-    BOOL isHovered;
-    BOOL isPressed;
-    BOOL wasDragged;
-    
-    POINT dragOffset;
-    
-    CardSide visibleSide;
-    
     char frontText[256];
     char backText[256];
     
     unsigned int hits;
     unsigned int misses;
+} Flashcard;
+
+typedef struct FlashcardView
+{
+    RECT bounds;
+    
+    CardSide visibleSide;
+    
+    BOOL isPressed;
+    BOOL wasDragged;
+    
+    POINT dragOffset;
     
     RECT missedButtonRect;
     RECT gotItButtonRect;
     
-    CardHoverTarget hoverTarget;
     CardPressTarget pressTarget;
-} Flashcard;
+    CardHoverTarget hoverTarget;
+} FlashcardView;
 
 typedef struct Deck
 {
@@ -78,8 +80,11 @@ typedef struct Deck
 typedef struct AppState
 {
     RECT clientRect;
+    
     BOOL trackingMouseLeave;
+    
     Deck deck;
+    FlashcardView cardView;
     
     AppMode mode;
 } AppState;
@@ -91,17 +96,18 @@ BOOL HandleSessionCompleteClick(
 );
 
 void UpdateFlashcardHover(
-    Flashcard *card,
+    FlashcardView *view,
     POINT mousePosition
 );
 
 void BeginFlashcardPress(
-    Flashcard *card,
+    FlashcardView *view,
     POINT mousePosition
 );
 
 BOOL HandleFlashcardClick(
     Flashcard *card,
+    FlashcardView *view,
     POINT mousePosition
 );
 
@@ -109,7 +115,8 @@ void InitializeApp(HWND hwnd, AppState *app);
 
 void DrawFlashcard(
     HDC hdc,
-    const Flashcard *card
+    const Flashcard *card,
+    const FlashcardView *view
 );
 
 void DrawDiagnostics(
@@ -125,7 +132,6 @@ void DrawSessionComplete(
 
 void DrawSessionProgress(
     HDC hdc,
-    const RECT *clientRect,
     const Deck *deck
 );
 
