@@ -1,0 +1,17 @@
+{
+    "name": "RecallDeck Starter",
+    "cards": [
+    {
+        "front": "What message reports mouse movement?",
+        "back": "WM_MOUSEMOVE"
+    },
+    {
+        "front": "What message is sent when a window needs repainting?",
+        "back": "WM_PAINT"
+    },
+    {
+        "front": "What message is sent when the left mouse button is pressed?",
+        "back": "WM_LBUTTONDOWN"
+    }
+    ]
+}

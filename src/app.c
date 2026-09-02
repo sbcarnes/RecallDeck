@@ -1,4 +1,5 @@
 #include "app.h"
+#include "deck_io.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -651,7 +652,30 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     ShuffleReviewOrder(&app->deck);
     
+    char deckFileText[8192];
     
+    if (ReadDeckFile(
+        "../decks/deck_01.json",
+        deckFileText,
+        sizeof(deckFileText)
+    ))
+    {
+        MessageBox(
+            hwnd,
+            deckFileText,
+            "Loaded Deck JSON",
+            MB_OK
+        );
+    }
+    else
+    {
+        MessageBox(
+            hwnd,
+            "Could not read decks/deck_01.json",
+            "RecallDeck Error",
+            MB_OK | MB_ICONERROR
+        );
+    }
 }
 
 void DrawFlashcard(
