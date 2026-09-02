@@ -59,9 +59,6 @@ typedef struct FlashcardView
     
     POINT dragOffset;
     
-    RECT missedButtonRect;
-    RECT gotItButtonRect;
-    
     CardPressTarget pressTarget;
     CardHoverTarget hoverTarget;
 } FlashcardView;

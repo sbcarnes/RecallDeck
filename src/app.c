@@ -1,5 +1,6 @@
 #include "app.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static void DrawCardBackground(HDC hdc, const FlashcardView *view);
 static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
@@ -25,26 +26,9 @@ static const FlashcardSeed starterCards[] =
 static void InitializeFlashcard(
     Flashcard *card,
     const char *frontText,
-    const char *backText,
-    FlashcardView *view
+    const char *backText
 )
 {
-    SetRect(
-        &view->bounds,
-        80,
-        80,
-        420,
-        280
-    );
-    
-    view->visibleSide = CARD_FRONT;
-    
-    view->isPressed = FALSE;
-    view->wasDragged = FALSE;
-    
-    view->pressTarget = CARD_PRESS_NONE;
-    view->hoverTarget = CARD_HOVER_NONE;
-    
     card->hits = 0;
     card-> misses = 0;
     
@@ -61,6 +45,27 @@ static void InitializeFlashcard(
         "%s",
         backText
     );
+}
+
+static void InitializeFlashcardView(
+    FlashcardView *view
+)
+{
+    SetRect(
+        &view->bounds,
+        80, 80, 420, 280
+    );
+    
+    view->visibleSide = CARD_FRONT;
+    
+    view->isPressed = FALSE;
+    view->wasDragged = FALSE;
+    
+    view->dragOffset.x = 0;
+    view->dragOffset.y = 0;
+    
+    view->pressTarget = CARD_PRESS_NONE;
+    view->hoverTarget = CARD_HOVER_NONE;
 }
 
 static void GetReviewAgainButtonRect(
@@ -122,10 +127,6 @@ void RestartReviewSession(
     }
     
     ShuffleReviewOrder(deck);
-    
-    deck->reviewPosition = 0;
-    
-    deck->currentIndex = deck->reviewOrder[0];
     
     app->mode = APP_MODE_REVIEW;
 }
@@ -628,13 +629,16 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     app->mode = APP_MODE_REVIEW;
     
+    InitializeFlashcardView(
+        &app->cardView
+    );
+    
     for (size_t i = 0; i < app->deck.cardCount; i++)
     {
         InitializeFlashcard(
             &app->deck.cards[i],
             starterCards[i].frontText,
-            starterCards[i].backText,
-            &app->cardView
+            starterCards[i].backText
         );
         
         app->deck.reviewOrder[i] = i;
