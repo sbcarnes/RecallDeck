@@ -15,4 +15,8 @@ int ExtractDeckName(
     size_t nameBufferSize
 );
 
+int CountDeckCards(
+    const char *jsonText
+);
+
 #endif

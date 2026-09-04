@@ -701,6 +701,36 @@ void InitializeApp(HWND hwnd, AppState *app)
             MB_OK | MB_ICONERROR
         );
     }
+    
+    int cardCount = CountDeckCards(deckFileText);
+    
+    char countMessage[64];
+    
+    if (cardCount >= 0)
+    {
+        snprintf(
+            countMessage,
+            sizeof(countMessage),
+            "Cards found: %d",
+            cardCount
+        );
+        
+        MessageBox(
+            hwnd,
+            countMessage,
+            "Deck Parse Test",
+            MB_OK
+        );
+    }
+    else
+    {
+        MessageBox(
+            hwnd,
+            "Could not parse cards array.",
+            "RecallDeck Error",
+            MB_OK | MB_ICONERROR
+        );
+    }
 }
 
 void DrawFlashcard(

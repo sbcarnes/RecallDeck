@@ -4,6 +4,16 @@
 #include <string.h>
 #include <ctype.h>
 
+static const char *FindMatchingBrace(const char *objectStart);
+
+/*static int ExtractJsonStringField(
+    const char *objectStart,
+    const char *objectEnd,
+    const char *fieldName,
+    char *buffer,
+    size_t bufferSize
+);*/
+
 int ReadDeckFile(
     const char *filePath,
     char *buffer,
@@ -92,3 +102,133 @@ int ExtractDeckName(
     
     return 1;
 }
+
+static const char *FindMatchingBrace(
+    const char *objectStart
+)
+{
+    if (objectStart == NULL || *objectStart != '{')
+    {
+        return NULL;
+    }
+    
+    int depth = 0;
+    int insideString = 0;
+    int escaped = 0;
+    
+    const char *cursor = objectStart;
+    
+    while (*cursor != '\0')
+    {
+        char current = *cursor;
+        
+        if (insideString)
+        {
+            if (escaped)
+            {
+                escaped = 0;
+            }
+            else if (current == '\\')
+            {
+                escaped = 1;
+            }
+            else if (current == '"')
+            {
+                insideString = 0;
+            }
+        }
+        else
+        {
+            if (current == '"')
+            {
+                insideString = 1;
+            }
+            else if (current == '{')
+            {
+                depth++;
+                
+            }
+            else if (current == '}')
+            {
+                depth--;
+                
+                if (depth == 0)
+                {
+                    return cursor;
+                }
+            }
+        }
+        
+        cursor++;
+    }
+    
+    return NULL;
+}
+
+int CountDeckCards(
+    const char *jsonText
+)
+{
+    if (jsonText == NULL)
+    {
+        return -1;
+    }
+    
+    const char *cardsKey = strstr(jsonText, "\"cards\"");
+    
+    if (cardsKey == NULL)
+    {
+        return -1;
+    }
+    
+    const char *arrayStart = strchr(cardsKey, '[');
+    
+    if (arrayStart == NULL)
+    {
+        return -1;
+    }
+    
+    const char *cursor = arrayStart + 1;
+    
+    int cardCount = 0;
+    
+    while (*cursor != '\0')
+    {
+        // Skip whitespace and commas
+        // between card objects
+        while(*cursor != '\0' &&
+              (isspace((unsigned char)*cursor) ||
+               *cursor == ','))
+        {
+            cursor++;
+        }
+        
+        // Closing ] means the card
+        // array is finished
+        if (*cursor == ']')
+        {
+            return cardCount;
+        }
+        
+        // Each array member is expected
+        // to be an object
+        if (*cursor != '{')
+        {
+            return -1;
+        }
+        
+        const char *cardEnd = FindMatchingBrace(cursor);
+        
+        if (cardEnd == NULL)
+        {
+            return -1;
+        }
+        
+        cardCount++;
+        
+        cursor = cardEnd + 1;
+    }
+    
+    return -1;
+}
+
