@@ -9,4 +9,10 @@ int ReadDeckFile(
     size_t bufferSize
 );
 
+int ExtractDeckName(
+    const char *jsonText,
+    char *nameBuffer,
+    size_t nameBufferSize
+);
+
 #endif

@@ -676,6 +676,31 @@ void InitializeApp(HWND hwnd, AppState *app)
             MB_OK | MB_ICONERROR
         );
     }
+    
+    char deckName[128];
+    
+    if (ExtractDeckName(
+        deckFileText,
+        deckName,
+        sizeof(deckName)
+    ))
+    {
+        MessageBox(
+            hwnd,
+            deckName,
+            "Deck Name",
+            MB_OK
+        );
+    }
+    else
+    {
+        MessageBox(
+            hwnd,
+            "Could not extract deck name.",
+            "RecallDeck Error",
+            MB_OK | MB_ICONERROR
+        );
+    }
 }
 
 void DrawFlashcard(
