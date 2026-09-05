@@ -54,7 +54,7 @@ static void InitializeFlashcardView(
 {
     SetRect(
         &view->bounds,
-        80, 80, 420, 280
+        80, 140, 420, 340
     );
     
     view->visibleSide = CARD_FRONT;
@@ -618,6 +618,112 @@ BOOL HandleFlashcardClick(
     return FALSE;
 }
 
+static void DrawStatusDot(
+    HDC hdc,
+    int x,
+    int y,
+    BOOL success
+)
+{
+    COLORREF dotColor =
+        success
+            ? RGB(70, 140, 80)
+            : RGB(180, 70, 70);
+    
+    HBRUSH brush = CreateSolidBrush(dotColor);
+    
+    if (brush == NULL)
+    {
+        return;
+    }
+    
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc, brush
+        );
+    
+    Ellipse(
+        hdc, x, y,
+        x + 10, y + 10
+    );
+    
+    SelectObject(
+        hdc,
+        oldBrush
+    );
+    
+    DeleteObject(brush);
+}
+
+static void DrawStatusRow(
+    HDC hdc, int x, int y,
+    BOOL success, const char *label
+)
+{
+    DrawStatusDot(hdc, x, y, success);
+    TextOut(hdc, x + 18, y - 3, label, (int)strlen(label));
+}
+
+void DrawDeckLoadStatus(
+    HDC hdc,
+    const DeckLoadStatus *status
+)
+{
+    int x = 20;
+    int y = 60;
+    int rowSpacing = 22;
+    
+    DrawStatusRow(
+        hdc,
+        x,
+        y,
+        status->fileLoaded,
+        "Deck file"
+    );
+    
+    y += rowSpacing;
+    
+    DrawStatusRow(
+        hdc,
+        x,
+        y,
+        status->nameLoaded,
+        status->nameLoaded
+            ? status->deckName
+            : "Deck name unavailable"
+    );
+    
+    y += rowSpacing;
+    
+    char cardCountLabel[64];
+    
+    if (status->cardCountLoaded)
+    {
+        snprintf(
+            cardCountLabel,
+            sizeof(cardCountLabel),
+            "%d cards",
+            status->cardCount
+        );
+    }
+    else
+    {
+        snprintf(
+            cardCountLabel,
+            sizeof(cardCountLabel),
+            "Card count unavailable"
+        );
+    }
+    
+    DrawStatusRow(
+        hdc,
+        x,
+        y,
+        status->cardCountLoaded,
+        cardCountLabel
+    );
+}
+
 void InitializeApp(HWND hwnd, AppState *app)
 {
     GetClientRect(hwnd, &app->clientRect);
@@ -654,82 +760,34 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     char deckFileText[8192];
     
-    if (ReadDeckFile(
-        "../decks/deck_01.json",
-        deckFileText,
-        sizeof(deckFileText)
-    ))
-    {
-        MessageBox(
-            hwnd,
+    app->deckLoadStatus.fileLoaded =
+        ReadDeckFile(
+            "../decks/deck_01.json",
             deckFileText,
-            "Loaded Deck JSON",
-            MB_OK
+            sizeof(deckFileText)
         );
+    
+    if(app->deckLoadStatus.fileLoaded)
+    {
+        app->deckLoadStatus.nameLoaded =
+            ExtractDeckName(
+                deckFileText,
+                app->deckLoadStatus.deckName,
+                sizeof(app->deckLoadStatus.deckName)
+            );
+    }
+    
+    int parsedCardCount = CountDeckCards(deckFileText);
+    
+    if (parsedCardCount >= 0)
+    {
+        app->deckLoadStatus.cardCountLoaded = TRUE;
+        app->deckLoadStatus.cardCount = parsedCardCount;
     }
     else
     {
-        MessageBox(
-            hwnd,
-            "Could not read decks/deck_01.json",
-            "RecallDeck Error",
-            MB_OK | MB_ICONERROR
-        );
-    }
-    
-    char deckName[128];
-    
-    if (ExtractDeckName(
-        deckFileText,
-        deckName,
-        sizeof(deckName)
-    ))
-    {
-        MessageBox(
-            hwnd,
-            deckName,
-            "Deck Name",
-            MB_OK
-        );
-    }
-    else
-    {
-        MessageBox(
-            hwnd,
-            "Could not extract deck name.",
-            "RecallDeck Error",
-            MB_OK | MB_ICONERROR
-        );
-    }
-    
-    int cardCount = CountDeckCards(deckFileText);
-    
-    char countMessage[64];
-    
-    if (cardCount >= 0)
-    {
-        snprintf(
-            countMessage,
-            sizeof(countMessage),
-            "Cards found: %d",
-            cardCount
-        );
-        
-        MessageBox(
-            hwnd,
-            countMessage,
-            "Deck Parse Test",
-            MB_OK
-        );
-    }
-    else
-    {
-        MessageBox(
-            hwnd,
-            "Could not parse cards array.",
-            "RecallDeck Error",
-            MB_OK | MB_ICONERROR
-        );
+        app->deckLoadStatus.cardCountLoaded = FALSE;
+        app->deckLoadStatus.cardCount = 0;
     }
 }
 

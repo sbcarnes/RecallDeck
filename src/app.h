@@ -74,6 +74,16 @@ typedef struct Deck
     size_t reviewPosition;
 } Deck;
 
+typedef struct DeckLoadStatus
+{
+    BOOL fileLoaded;
+    BOOL nameLoaded;
+    BOOL cardCountLoaded;
+    
+    char deckName[128];
+    int cardCount;
+} DeckLoadStatus;
+
 typedef struct AppState
 {
     RECT clientRect;
@@ -84,6 +94,8 @@ typedef struct AppState
     FlashcardView cardView;
     
     AppMode mode;
+    
+    DeckLoadStatus deckLoadStatus;
 } AppState;
 
 BOOL HandleSessionCompleteClick(
@@ -120,6 +132,11 @@ void DrawDiagnostics(
     HDC hdc,
     const RECT *clientRect,
     const Deck *deck
+);
+
+void DrawDeckLoadStatus(
+    HDC hdc,
+    const DeckLoadStatus *status
 );
 
 void DrawSessionComplete(
