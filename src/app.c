@@ -789,6 +789,43 @@ void InitializeApp(HWND hwnd, AppState *app)
         app->deckLoadStatus.cardCountLoaded = FALSE;
         app->deckLoadStatus.cardCount = 0;
     }
+    
+    char testFront[256];
+    char testBack[256];
+    
+    if (ExtractFirstCardFields(
+            deckFileText,
+            testFront,
+            sizeof(testFront),
+            testBack,
+            sizeof(testBack)))
+    {
+        char testMessage[600];
+        
+        snprintf(
+            testMessage,
+            sizeof(testMessage),
+            "FRONT:\n%s\n\nBACK:\n%s",
+            testFront,
+            testBack
+        );
+        
+        MessageBox(
+            hwnd,
+            testMessage,
+            "Card Parser Test",
+            MB_OK
+        );
+    }
+    else
+    {
+        MessageBox(
+            hwnd,
+            "Could not extract first card.",
+            "Card Parser Test",
+            MB_OK | MB_ICONERROR
+        );
+    }
 }
 
 void DrawFlashcard(
