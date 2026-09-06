@@ -12,6 +12,10 @@
     {
         "front": "What message is sent when the left mouse button is pressed?",
         "back": "WM_LBUTTONDOWN"
+    },
+    {
+        "front": "What function checks whether a point lies inside a RECT?",
+        "back": "PtInRect"
     }
     ]
 }

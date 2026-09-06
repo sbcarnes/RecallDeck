@@ -27,4 +27,13 @@ int ExtractFirstCardFields(
     size_t backBufferSize
 );
 
+int ExtractCardFields(
+    const char *jsonText,
+    size_t cardIndex,
+    char *frontBuffer,
+    size_t frontBufferSize,
+    char *backBuffer,
+    size_t backBufferSize
+);
+
 #endif

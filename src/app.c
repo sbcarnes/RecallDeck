@@ -8,7 +8,7 @@ static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *v
 static void DrawRevealHint(HDC hdc, const FlashcardView *view);
 static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
 
-static const FlashcardSeed starterCards[] =
+/*static const FlashcardSeed starterCards[] =
 {
     {
         "What message reports mouse movement?",
@@ -22,7 +22,7 @@ static const FlashcardSeed starterCards[] =
         "What message is sent when the left mouse button is pressed?",
         "WM_LBUTTONDOWN"
     }
-};
+};*/
 
 static void InitializeFlashcard(
     Flashcard *card,
@@ -728,35 +728,11 @@ void InitializeApp(HWND hwnd, AppState *app)
 {
     GetClientRect(hwnd, &app->clientRect);
     
-    app->deck.cardCount =
-        sizeof(starterCards) /
-        sizeof(starterCards[0]);
-    
-    app->deck.currentIndex = 0;
-    
     app->mode = APP_MODE_REVIEW;
     
     InitializeFlashcardView(
         &app->cardView
     );
-    
-    for (size_t i = 0; i < app->deck.cardCount; i++)
-    {
-        InitializeFlashcard(
-            &app->deck.cards[i],
-            starterCards[i].frontText,
-            starterCards[i].backText
-        );
-        
-        app->deck.reviewOrder[i] = i;
-    }
-    
-    if (app->deck.cardCount > 0)
-    {
-        app->deck.currentIndex = app->deck.reviewOrder[0];
-    }
-    
-    ShuffleReviewOrder(&app->deck);
     
     char deckFileText[8192];
     
@@ -779,10 +755,19 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     int parsedCardCount = CountDeckCards(deckFileText);
     
+    if (parsedCardCount < 0 || parsedCardCount > MAX_CARDS)
+    {
+        app->deckLoadStatus.cardCountLoaded = FALSE;
+        app->deckLoadStatus.cardCount = 0;
+    }
+    
     if (parsedCardCount >= 0)
     {
         app->deckLoadStatus.cardCountLoaded = TRUE;
         app->deckLoadStatus.cardCount = parsedCardCount;
+        
+        app->deck.cardCount = (size_t)parsedCardCount;
+        app->deck.currentIndex = 0;
     }
     else
     {
@@ -790,42 +775,36 @@ void InitializeApp(HWND hwnd, AppState *app)
         app->deckLoadStatus.cardCount = 0;
     }
     
-    char testFront[256];
-    char testBack[256];
+    for (size_t i = 0; i < app->deck.cardCount; i++)
+    {
+        char frontText[256];
+        char backText[256];
+        
+        if (!ExtractCardFields(
+                deckFileText,
+                i,
+                frontText,
+                sizeof(frontText),
+                backText,
+                sizeof(backText)))
+        {
+            // Deck parsing failed
+            // Don't silently construct half a deck
+            app->deck.cardCount = 0;
+            break;
+        }
+        
+        InitializeFlashcard(
+            &app->deck.cards[i],
+            frontText,
+            backText
+        );
+        
+        app->deck.reviewOrder[i] = i;
+    }
     
-    if (ExtractFirstCardFields(
-            deckFileText,
-            testFront,
-            sizeof(testFront),
-            testBack,
-            sizeof(testBack)))
-    {
-        char testMessage[600];
-        
-        snprintf(
-            testMessage,
-            sizeof(testMessage),
-            "FRONT:\n%s\n\nBACK:\n%s",
-            testFront,
-            testBack
-        );
-        
-        MessageBox(
-            hwnd,
-            testMessage,
-            "Card Parser Test",
-            MB_OK
-        );
-    }
-    else
-    {
-        MessageBox(
-            hwnd,
-            "Could not extract first card.",
-            "Card Parser Test",
-            MB_OK | MB_ICONERROR
-        );
-    }
+    ShuffleReviewOrder(&app->deck);
+    
 }
 
 void DrawFlashcard(

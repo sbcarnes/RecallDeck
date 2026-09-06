@@ -525,3 +525,93 @@ int ExtractFirstCardFields(
     return 1;
 }
 
+int ExtractCardFields(
+    const char *jsonText,
+    size_t cardIndex,
+    char *frontBuffer,
+    size_t frontBufferSize,
+    char *backBuffer,
+    size_t backBufferSize
+)
+{
+    if (jsonText == NULL)
+    {
+        return 0;
+    }
+    
+    const char *cardsKey = strstr(jsonText, "\"cards\"");
+    
+    if (cardsKey == NULL)
+    {
+        return 0;
+    }
+    
+    const char *arrayStart = strchr(cardsKey, '[');
+    
+    if (arrayStart == NULL)
+    {
+        return 0;
+    }
+    
+    const char *cursor = arrayStart + 1;
+    
+    size_t currentIndex = 0;
+    
+    while (*cursor != '\0')
+    {
+        while (*cursor != '\0' &&
+               (isspace((unsigned char)*cursor) ||
+                *cursor == ','))
+        {
+            cursor++;
+        }
+        
+        if (*cursor == ']')
+        {
+            return 0;
+        }
+        
+        if (*cursor != '{')
+        {
+            return 0;
+        }
+        
+        const char *cardEnd = FindMatchingBrace(cursor);
+        
+        if (cardEnd == NULL)
+        {
+            return 0;
+        }
+        
+        if (currentIndex == cardIndex)
+        {
+            if (!ExtractJsonStringField(
+                    cursor,
+                    cardEnd,
+                    "front",
+                    frontBuffer,
+                    frontBufferSize))
+            {
+                return 0;
+            }
+            
+            if (!ExtractJsonStringField(
+                    cursor,
+                    cardEnd,
+                    "back",
+                    backBuffer,
+                    backBufferSize))
+            {
+                return 0;
+            }
+            
+            return 1;
+        }
+        
+        currentIndex++;
+        cursor = cardEnd + 1;
+    }
+    
+    return 0;
+}
+
