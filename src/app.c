@@ -8,22 +8,6 @@ static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *v
 static void DrawRevealHint(HDC hdc, const FlashcardView *view);
 static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
 
-/*static const FlashcardSeed starterCards[] =
-{
-    {
-        "What message reports mouse movement?",
-        "WM_MOUSEMOVE"
-    },
-    {
-        "What message is sent when a window needs repainting?",
-        "WM_PAINT"
-    },
-    {
-        "What message is sent when the left mouse button is pressed?",
-        "WM_LBUTTONDOWN"
-    }
-};*/
-
 static void InitializeFlashcard(
     Flashcard *card,
     const char *frontText,
@@ -864,8 +848,15 @@ void DrawDiagnostics(
 {
     RECT panelRect;
     
+    int headerHeight = 50;
+    int rowHeight = 20;
+    int bottomPadding = 12;
+    
     int panelWidth = 240;
-    int panelHeight = 130;
+    int panelHeight =
+        headerHeight +
+        ((int)deck->cardCount * rowHeight) +
+        bottomPadding;
     int margin = 20;
     
     SetRect(
