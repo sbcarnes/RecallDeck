@@ -10,12 +10,20 @@ static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
 
 static void InitializeFlashcard(
     Flashcard *card,
+    const char *id,
     const char *frontText,
     const char *backText
 )
 {
     card->hits = 0;
     card-> misses = 0;
+    
+    snprintf(
+        card->id,
+        sizeof(card->id),
+        "%s",
+        id
+    );
     
     snprintf(
         card->frontText,
@@ -735,59 +743,59 @@ void InitializeApp(HWND hwnd, AppState *app)
                 app->deckLoadStatus.deckName,
                 sizeof(app->deckLoadStatus.deckName)
             );
-    }
     
-    int parsedCardCount = CountDeckCards(deckFileText);
     
-    if (parsedCardCount < 0 || parsedCardCount > MAX_CARDS)
-    {
-        app->deckLoadStatus.cardCountLoaded = FALSE;
-        app->deckLoadStatus.cardCount = 0;
-    }
-    
-    if (parsedCardCount >= 0)
-    {
-        app->deckLoadStatus.cardCountLoaded = TRUE;
-        app->deckLoadStatus.cardCount = parsedCardCount;
+        int parsedCardCount = CountDeckCards(deckFileText);
         
-        app->deck.cardCount = (size_t)parsedCardCount;
-        app->deck.currentIndex = 0;
-    }
-    else
-    {
-        app->deckLoadStatus.cardCountLoaded = FALSE;
-        app->deckLoadStatus.cardCount = 0;
-    }
-    
-    for (size_t i = 0; i < app->deck.cardCount; i++)
-    {
-        char frontText[256];
-        char backText[256];
-        
-        if (!ExtractCardFields(
-                deckFileText,
-                i,
-                frontText,
-                sizeof(frontText),
-                backText,
-                sizeof(backText)))
+        if (parsedCardCount >= 0 && parsedCardCount <= MAX_CARDS)
         {
-            // Deck parsing failed
-            // Don't silently construct half a deck
+            app->deckLoadStatus.cardCountLoaded = TRUE;
+            app->deckLoadStatus.cardCount = parsedCardCount;
+            
+            app->deck.cardCount = (size_t)parsedCardCount;
+            app->deck.currentIndex = 0;
+        }
+        else
+        {
+            app->deckLoadStatus.cardCountLoaded = FALSE;
+            app->deckLoadStatus.cardCount = 0;
             app->deck.cardCount = 0;
-            break;
         }
         
-        InitializeFlashcard(
-            &app->deck.cards[i],
-            frontText,
-            backText
-        );
+        for (size_t i = 0; i < app->deck.cardCount; i++)
+        {
+            char cardId[64];
+            char frontText[256];
+            char backText[256];
+            
+            if (!ExtractCardFields(
+                    deckFileText,
+                    i,
+                    cardId,
+                    sizeof(cardId),
+                    frontText,
+                    sizeof(frontText),
+                    backText,
+                    sizeof(backText)))
+            {
+                // Deck parsing failed
+                // Don't silently construct half a deck
+                app->deck.cardCount = 0;
+                break;
+            }
+            
+            InitializeFlashcard(
+                &app->deck.cards[i],
+                cardId,
+                frontText,
+                backText
+            );
+            
+            app->deck.reviewOrder[i] = i;
+        }
         
-        app->deck.reviewOrder[i] = i;
+        ShuffleReviewOrder(&app->deck);
     }
-    
-    ShuffleReviewOrder(&app->deck);
     
 }
 

@@ -502,6 +502,8 @@ int ExtractFirstCardFields(
         return 0;
     }
     
+    
+    
     if (!ExtractJsonStringField(
             cardStart,
             cardEnd,
@@ -528,6 +530,8 @@ int ExtractFirstCardFields(
 int ExtractCardFields(
     const char *jsonText,
     size_t cardIndex,
+    char *idBuffer,
+    size_t idBufferSize,
     char *frontBuffer,
     size_t frontBufferSize,
     char *backBuffer,
@@ -585,6 +589,17 @@ int ExtractCardFields(
         
         if (currentIndex == cardIndex)
         {
+    
+            if (!ExtractJsonStringField(
+                    cursor,
+                    cardEnd,
+                    "id",
+                    idBuffer,
+                    idBufferSize))
+            {
+                return 0;
+            }
+            
             if (!ExtractJsonStringField(
                     cursor,
                     cardEnd,

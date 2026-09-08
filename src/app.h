@@ -41,6 +41,8 @@ typedef struct FlashcardSeed
 
 typedef struct Flashcard
 {
+    char id[64];
+    
     char frontText[256];
     char backText[256];
     

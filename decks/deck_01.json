@@ -2,18 +2,22 @@
     "name": "RecallDeck Starter",
     "cards": [
     {
+        "id": "mouse_move",
         "front": "What message reports mouse movement?",
         "back": "WM_MOUSEMOVE"
     },
     {
+        "id": "paint",
         "front": "What message is sent when a window needs repainting?",
         "back": "WM_PAINT"
     },
     {
+        "id": "left_button_down",
         "front": "What message is sent when the left mouse button is pressed?",
         "back": "WM_LBUTTONDOWN"
     },
     {
+        "id": "pt_in_rect",
         "front": "What function checks whether a point lies inside a RECT?",
         "back": "PtInRect"
     }
