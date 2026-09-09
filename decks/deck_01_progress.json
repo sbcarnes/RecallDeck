@@ -1,0 +1,24 @@
+{
+    "cards": [
+        {
+            "id": "mouse_move",
+            "hits": 0,
+            "misses": 0
+        },
+        {
+            "id": "paint",
+            "hits": 0,
+            "misses": 0
+        },
+        {
+            "id": "left_button_down",
+            "hits": 0,
+            "misses": 0
+        },
+        {
+            "id": "pt_in_rect",
+            "hits": 0,
+            "misses": 0
+        }
+    ]
+}
