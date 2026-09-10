@@ -922,7 +922,7 @@ void DrawDiagnostics(
         int added = snprintf(
             diagnosticText + used,
             sizeof(diagnosticText) - (size_t)used,
-            "%c [%zu] Hits: %u Misses: %u\n",
+            "%c [%u] Hits: %u Misses: %u\n",
             i == deck->currentIndex ? '>' : ' ',
             i, card->hits, card->misses
         );
@@ -1026,7 +1026,7 @@ void DrawSessionProgress(
     snprintf(
         progressText,
         sizeof(progressText),
-        "Card %zu of %zu",
+        "Card %u of %u",
         deck->reviewPosition + 1,
         deck->cardCount
     );
