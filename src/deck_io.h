@@ -38,4 +38,9 @@ int ExtractCardFields(
     size_t backBufferSize
 );
 
+int SaveDeckProgress(
+    const char *filePath,
+    const Deck *deck
+);
+
 #endif
