@@ -630,3 +630,13 @@ int ExtractCardFields(
     return 0;
 }
 
+int SaveDeckProgress(
+    const char *filePath,
+    const Deck *deck
+)
+{
+    (void)filePath;
+    (void)deck;
+    
+    return 0;
+}
