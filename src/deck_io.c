@@ -635,8 +635,22 @@ int SaveDeckProgress(
     const Deck *deck
 )
 {
-    (void)filePath;
-    (void)deck;
+    if (filePath == NULL || deck == NULL)
+    {
+        return 0;
+    }
     
-    return 0;
+    FILE *file = fopen(filePath, "w");
+    
+    if (file == NULL)
+    {
+        return 0;
+    }
+    
+    if (fclose(file) != 0)
+    {
+        return 0;
+    }
+    
+    return 1;
 }
