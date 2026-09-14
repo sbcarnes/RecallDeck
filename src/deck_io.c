@@ -647,6 +647,18 @@ int SaveDeckProgress(
         return 0;
     }
     
+    if (fprintf(
+            file,
+            "{\n"
+            "    \"cards\": [\n"
+            "    ]\n"
+            "}\n"
+        ) < 0)
+    {
+        fclose(file);
+        return 0;
+    }
+    
     if (fclose(file) != 0)
     {
         return 0;
