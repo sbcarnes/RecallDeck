@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+typedef struct Deck Deck;
+
 int ReadDeckFile(
     const char *filePath,
     char *buffer,
