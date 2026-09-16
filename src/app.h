@@ -2,8 +2,7 @@
 #define APP_H
 
 #include <windows.h>
-
-#define MAX_CARDS 32
+#include "deck.h"
 
 typedef enum CardSide
 {
@@ -39,17 +38,6 @@ typedef struct FlashcardSeed
     const char *backText;
 } FlashcardSeed;
 
-typedef struct Flashcard
-{
-    char id[64];
-    
-    char frontText[256];
-    char backText[256];
-    
-    unsigned int hits;
-    unsigned int misses;
-} Flashcard;
-
 typedef struct FlashcardView
 {
     RECT bounds;
@@ -64,17 +52,6 @@ typedef struct FlashcardView
     CardPressTarget pressTarget;
     CardHoverTarget hoverTarget;
 } FlashcardView;
-
-typedef struct Deck
-{
-    Flashcard cards[MAX_CARDS];
-    
-    size_t cardCount;
-    size_t currentIndex;
-    
-    size_t reviewOrder[MAX_CARDS];
-    size_t reviewPosition;
-} Deck;
 
 typedef struct DeckLoadStatus
 {

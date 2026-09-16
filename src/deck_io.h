@@ -2,8 +2,7 @@
 #define DECK_IO_H
 
 #include <stddef.h>
-
-typedef struct Deck Deck;
+#include "deck.h"
 
 int ReadDeckFile(
     const char *filePath,
