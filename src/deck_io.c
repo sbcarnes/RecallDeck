@@ -651,6 +651,40 @@ int SaveDeckProgress(
             file,
             "{\n"
             "    \"cards\": [\n"
+        ) < 0)
+    {
+        fclose(file);
+        return 0;
+    }
+    
+    for (size_t i = 0;
+         i < deck->cardCount;
+         i++)
+    {
+        const Flashcard *card = &deck->cards[i];
+        
+        if (fprintf(
+                file,
+                "        {\n"
+                "            \"id\": \"%s\",\n"
+                "            \"hits\": %u,\n"
+                "            \"misses\": %u\n"
+                "        }%s\n",
+                card->id,
+                card->hits,
+                card->misses,
+                i + 1 < deck->cardCount
+                    ? ","
+                    : ""
+           ) < 0)
+        {
+            fclose(file);
+            return 0;
+        }
+    }
+    
+    if (fprintf(
+            file,
             "    ]\n"
             "}\n"
         ) < 0)

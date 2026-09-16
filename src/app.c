@@ -797,6 +797,17 @@ void InitializeApp(HWND hwnd, AppState *app)
         ShuffleReviewOrder(&app->deck);
     }
     
+    /*app->deck.cards[0].hits = 7;
+    app->deck.cards[0].misses = 2;
+    
+    app->deck.cards[1].hits = 3;
+    app->deck.cards[1].misses = 5;
+    
+    SaveDeckProgress(
+        "../decks/deck_01_progress_test.json",
+        &app->deck
+    );*/
+    
 }
 
 void DrawFlashcard(
