@@ -744,7 +744,6 @@ void InitializeApp(HWND hwnd, AppState *app)
                 sizeof(app->deckLoadStatus.deckName)
             );
     
-    
         int parsedCardCount = CountDeckCards(deckFileText);
         
         if (parsedCardCount >= 0 && parsedCardCount <= MAX_CARDS)
@@ -791,61 +790,23 @@ void InitializeApp(HWND hwnd, AppState *app)
                 backText
             );
             
+            app->deckLoadStatus.progressLoaded =
+            LoadDeckProgress(
+                "../decks/deck_01_progress.json",
+                &app->deck
+            );
+            
             app->deck.reviewOrder[i] = i;
         }
         
+        app->deckLoadStatus.progressLoaded =
+            LoadDeckProgress(
+                "../decks/deck_01_progress.json",
+                &app->deck
+            );
+        
         ShuffleReviewOrder(&app->deck);
     }
-    
-    /*app->deck.cards[0].hits = 7;
-    app->deck.cards[0].misses = 2;
-    
-    app->deck.cards[1].hits = 3;
-    app->deck.cards[1].misses = 5;
-    
-    SaveDeckProgress(
-        "../decks/deck_01_progress_test.json",
-        &app->deck
-    );*/
-    
-    char progressFileText[8192];
-    
-    if (ReadDeckFile(
-            "../decks/deck_01_progress.json",
-            progressFileText,
-            sizeof(progressFileText)))
-    {
-        char id[64];
-        unsigned int hits;
-        unsigned int misses;
-        
-        if (ExtractFirstProgressEntry(
-                progressFileText,
-                id,
-                sizeof(id),
-                &hits,
-                &misses))
-        {
-            char testMessage[256];
-            
-            snprintf(
-                testMessage,
-                sizeof(testMessage),
-                "ID: %s\nHits: %u\nMisses: %u",
-                id,
-                hits,
-                misses
-            );
-            
-            MessageBox(
-                hwnd,
-                testMessage,
-                "Progress Parser Test",
-                MB_OK
-            );
-        }
-    }
-    
 }
 
 void DrawFlashcard(

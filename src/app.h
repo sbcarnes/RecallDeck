@@ -58,6 +58,7 @@ typedef struct DeckLoadStatus
     BOOL fileLoaded;
     BOOL nameLoaded;
     BOOL cardCountLoaded;
+    BOOL progressLoaded;
     
     char deckName[128];
     int cardCount;

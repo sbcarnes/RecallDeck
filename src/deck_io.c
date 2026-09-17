@@ -709,6 +709,129 @@ int SaveDeckProgress(
     return 1;
 }
 
+int LoadDeckProgress(
+    const char *filePath,
+    Deck *deck
+)
+{
+    if (filePath == NULL || deck == NULL)
+    {
+        return 0;
+    }
+    
+    char progressText[8192];
+    
+    if (!ReadDeckFile(
+            filePath,
+            progressText,
+            sizeof(progressText)))
+    {
+        return 0;
+    }
+    
+    const char *cardsKey =
+        strstr(progressText, "\"cards\"");
+    
+    if (cardsKey == NULL)
+    {
+        return 0;
+    }
+    
+    const char *arrayStart =
+        strchr(cardsKey, '[');
+    
+    if (arrayStart == NULL)
+    {
+        return 0;
+    }
+    
+    const char *cursor = arrayStart + 1;
+    
+    while (*cursor != '\0')
+    {
+        while (*cursor != '\0' &&
+               (isspace((unsigned char)*cursor) ||
+                *cursor == ','))
+        {
+            cursor++;
+        }
+        
+        if (*cursor == ']')
+        {
+            return 1;
+        }
+        
+        if (*cursor != '{')
+        {
+            return 0;
+        }
+        
+        const char *entryEnd = FindMatchingBrace(cursor);
+        
+        if (entryEnd == NULL)
+        {
+            return 0;
+        }
+        
+        char progressId[64];
+        unsigned int hits;
+        unsigned int misses;
+        
+        if (!ExtractJsonStringField(
+                cursor,
+                entryEnd,
+                "id",
+                progressId,
+                sizeof(progressId)))
+        {
+            return 0;
+        }
+        
+        if (!ExtractJsonUnsignedField(
+                cursor,
+                entryEnd,
+                "hits",
+                &hits))
+        {
+            return 0;
+        }
+        
+        if (!ExtractJsonUnsignedField(
+                cursor,
+                entryEnd,
+                "misses",
+                &misses))
+        {
+            return 0;
+        }
+        
+        int matchedCard = 0;
+        
+        for (size_t i = 0; i < deck->cardCount; i++)
+        {
+            Flashcard *card = &deck->cards[i];
+            
+            if (strcmp(card->id, progressId) == 0)
+            {
+                card->hits = hits;
+                card->misses = misses;
+                
+                matchedCard = 1;
+                break;
+            }
+        }
+        
+        if (!matchedCard)
+        {
+            return 0;
+        }
+        
+        cursor = entryEnd + 1;
+    }
+    
+    return 0;
+}
+
 static int ExtractJsonUnsignedField(
     const char *objectStart,
     const char *objectEnd,
@@ -870,84 +993,4 @@ static int ExtractJsonUnsignedField(
     }
     
     return 0;
-}
-
-int ExtractFirstProgressEntry(
-    const char *jsonText,
-    char *idBuffer,
-    size_t idBufferSize,
-    unsigned int *hits,
-    unsigned int *misses
-)
-{
-    if (jsonText == NULL ||
-        idBuffer == NULL ||
-        hits == NULL ||
-        misses == NULL)
-    {
-        return 0;
-    }
-    
-    const char *cardsKey = strstr(jsonText, "\"cards\"");
-    
-    if (cardsKey == NULL)
-    {
-        return 0;
-    }
-    
-    const char *arrayStart = strchr(cardsKey, '[');
-    
-    if (arrayStart == NULL)
-    {
-        return 0;
-    }
-    
-    const char *entryStart = arrayStart + 1;
-    
-    while (*entryStart != '\0' && isspace((unsigned char)*entryStart))
-    {
-        entryStart++;
-    }
-    
-    if (*entryStart != '{')
-    {
-        return 0;
-    }
-    
-    const char *entryEnd = FindMatchingBrace(entryStart);
-    
-    if (entryEnd == NULL)
-    {
-        return 0;
-    }
-    
-    if (!ExtractJsonStringField(
-            entryStart,
-            entryEnd,
-            "id",
-            idBuffer,
-            idBufferSize))
-    {
-        return 0;
-    }
-    
-    if (!ExtractJsonUnsignedField(
-            entryStart,
-            entryEnd,
-            "hits",
-            hits))
-    {
-        return 0;
-    }
-    
-    if (!ExtractJsonUnsignedField(
-            entryStart,
-            entryEnd,
-            "misses",
-            misses))
-    {
-        return 0;
-    }
-    
-    return 1;
 }
