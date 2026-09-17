@@ -808,6 +808,44 @@ void InitializeApp(HWND hwnd, AppState *app)
         &app->deck
     );*/
     
+    char progressFileText[8192];
+    
+    if (ReadDeckFile(
+            "../decks/deck_01_progress.json",
+            progressFileText,
+            sizeof(progressFileText)))
+    {
+        char id[64];
+        unsigned int hits;
+        unsigned int misses;
+        
+        if (ExtractFirstProgressEntry(
+                progressFileText,
+                id,
+                sizeof(id),
+                &hits,
+                &misses))
+        {
+            char testMessage[256];
+            
+            snprintf(
+                testMessage,
+                sizeof(testMessage),
+                "ID: %s\nHits: %u\nMisses: %u",
+                id,
+                hits,
+                misses
+            );
+            
+            MessageBox(
+                hwnd,
+                testMessage,
+                "Progress Parser Test",
+                MB_OK
+            );
+        }
+    }
+    
 }
 
 void DrawFlashcard(

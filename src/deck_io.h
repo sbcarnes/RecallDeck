@@ -44,4 +44,12 @@ int SaveDeckProgress(
     const Deck *deck
 );
 
+int ExtractFirstProgressEntry(
+    const char *jsonText,
+    char *idBuffer,
+    size_t idBufferSize,
+    unsigned int *hits,
+    unsigned int *misses
+);
+
 #endif

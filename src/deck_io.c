@@ -3,8 +3,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 
 static const char *FindMatchingBrace(const char *objectStart);
+
+static int ExtractJsonUnsignedField(
+    const char *objectStart,
+    const char *objectEnd,
+    const char *fieldName,
+    unsigned int *value
+);
 
 static int ExtractJsonStringField(
     const char *objectStart,
@@ -694,6 +702,249 @@ int SaveDeckProgress(
     }
     
     if (fclose(file) != 0)
+    {
+        return 0;
+    }
+    
+    return 1;
+}
+
+static int ExtractJsonUnsignedField(
+    const char *objectStart,
+    const char *objectEnd,
+    const char *fieldName,
+    unsigned int *value
+)
+{
+    if (objectStart == NULL ||
+        objectEnd == NULL ||
+        fieldName == NULL ||
+        value == NULL ||
+        objectEnd <= objectStart)
+    {
+        return 0;
+    }
+    
+    size_t fieldNameLength = strlen(fieldName);
+    
+    const char *cursor = objectStart + 1;
+    
+    while (cursor < objectEnd)
+    {
+        // Skip whitespace and commas
+        // between object fields
+        
+        while (cursor < objectEnd &&
+                (isspace((unsigned char)*cursor) ||
+                 *cursor == ','))
+        {
+            cursor++;
+        }
+        
+        if (cursor >= objectEnd)
+        {
+            break;
+        }
+        
+        // RecallDeck expects a quoted key
+        if (*cursor != '"')
+        {
+            return 0;
+        }
+        
+        cursor++;
+        
+        const char *keyStart = cursor;
+        
+        while (cursor < objectEnd && *cursor != '"')
+        {
+            cursor++;
+        }
+        
+        if (cursor >= objectEnd)
+        {
+            return 0;
+        }
+        
+        const char *keyEnd = cursor;
+        
+        cursor++;
+        
+        while (cursor < objectEnd && isspace((unsigned char)*cursor))
+        {
+            cursor++;
+        }
+        
+        if (cursor >= objectEnd || *cursor != ':')
+        {
+            return 0;
+        }
+        
+        cursor++;
+        
+        while (cursor < objectEnd && isspace((unsigned char)*cursor))
+        {
+            cursor++;
+        }
+        
+        int isRequestedField =
+            (size_t)(keyEnd - keyStart) ==
+                fieldNameLength &&
+            strncmp(
+                keyStart,
+                fieldName,
+                fieldNameLength
+            ) == 0;
+            
+        // If this is the field we want,
+        // parse its unsigned int value
+        if (isRequestedField)
+        {
+            if (cursor >= objectEnd || !isdigit((unsigned char)*cursor))
+            {
+                return 0;
+            }
+            
+            unsigned int result = 0;
+            
+            while (cursor < objectEnd &&
+                   isdigit((unsigned char)*cursor))
+            {
+                unsigned int digit = (unsigned int)(*cursor - '0');
+                
+                if (result > (UINT_MAX - digit) / 10)
+                {
+                    return 0;
+                }
+                
+                result = result * 10 + digit;
+                
+                cursor++;
+            }
+            
+            *value = result;
+            
+            return 1;
+        }
+        
+        // This isn't the field we're after
+        // Skip it
+        
+        // For the progress-file schema,
+        // values are currently either
+        // strings or unsigned integers
+        if (cursor < objectEnd && *cursor == '"')
+        {
+            cursor++;
+            
+            int escaped = 0;
+            
+            while (cursor < objectEnd)
+            {
+                if (escaped)
+                {
+                    escaped = 0;
+                }
+                else if (*cursor == '\\')
+                {
+                    escaped = 1;
+                }
+                else if (*cursor == '"')
+                {
+                    cursor++;
+                    break;
+                }
+                
+                cursor++;
+            }
+        }
+        else
+        {
+            while (cursor < objectEnd &&
+                   *cursor != ',' &&
+                   *cursor != '}')
+            {
+                cursor++;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+int ExtractFirstProgressEntry(
+    const char *jsonText,
+    char *idBuffer,
+    size_t idBufferSize,
+    unsigned int *hits,
+    unsigned int *misses
+)
+{
+    if (jsonText == NULL ||
+        idBuffer == NULL ||
+        hits == NULL ||
+        misses == NULL)
+    {
+        return 0;
+    }
+    
+    const char *cardsKey = strstr(jsonText, "\"cards\"");
+    
+    if (cardsKey == NULL)
+    {
+        return 0;
+    }
+    
+    const char *arrayStart = strchr(cardsKey, '[');
+    
+    if (arrayStart == NULL)
+    {
+        return 0;
+    }
+    
+    const char *entryStart = arrayStart + 1;
+    
+    while (*entryStart != '\0' && isspace((unsigned char)*entryStart))
+    {
+        entryStart++;
+    }
+    
+    if (*entryStart != '{')
+    {
+        return 0;
+    }
+    
+    const char *entryEnd = FindMatchingBrace(entryStart);
+    
+    if (entryEnd == NULL)
+    {
+        return 0;
+    }
+    
+    if (!ExtractJsonStringField(
+            entryStart,
+            entryEnd,
+            "id",
+            idBuffer,
+            idBufferSize))
+    {
+        return 0;
+    }
+    
+    if (!ExtractJsonUnsignedField(
+            entryStart,
+            entryEnd,
+            "hits",
+            hits))
+    {
+        return 0;
+    }
+    
+    if (!ExtractJsonUnsignedField(
+            entryStart,
+            entryEnd,
+            "misses",
+            misses))
     {
         return 0;
     }
