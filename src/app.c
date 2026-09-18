@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
+static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
+
 static void DrawCardBackground(HDC hdc, const FlashcardView *view);
 static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
 static void DrawRevealHint(HDC hdc, const FlashcardView *view);
@@ -730,7 +733,7 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     app->deckLoadStatus.fileLoaded =
         ReadDeckFile(
-            "../decks/deck_01.json",
+            DECK_FILE_PATH,
             deckFileText,
             sizeof(deckFileText)
         );
@@ -792,7 +795,7 @@ void InitializeApp(HWND hwnd, AppState *app)
             
             app->deckLoadStatus.progressLoaded =
             LoadDeckProgress(
-                "../decks/deck_01_progress.json",
+                PROGRESS_FILE_PATH,
                 &app->deck
             );
             
@@ -801,7 +804,7 @@ void InitializeApp(HWND hwnd, AppState *app)
         
         app->deckLoadStatus.progressLoaded =
             LoadDeckProgress(
-                "../decks/deck_01_progress.json",
+                PROGRESS_FILE_PATH,
                 &app->deck
             );
         
