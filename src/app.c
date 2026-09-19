@@ -1017,6 +1017,16 @@ void DrawSessionComplete(
     SelectObject(hdc, oldBrush);
 }
 
+static int SaveCurrentProgress(
+    const AppState *app
+)
+{
+    return SaveDeckProgress(
+        PROGRESS_FILE_PATH,
+        &app->deck
+    );
+}
+
 void DrawSessionProgress(
     HDC hdc,
     const Deck *deck
