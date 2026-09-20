@@ -793,12 +793,6 @@ void InitializeApp(HWND hwnd, AppState *app)
                 backText
             );
             
-            app->deckLoadStatus.progressLoaded =
-            LoadDeckProgress(
-                PROGRESS_FILE_PATH,
-                &app->deck
-            );
-            
             app->deck.reviewOrder[i] = i;
         }
         
