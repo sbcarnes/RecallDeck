@@ -236,6 +236,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     
                     if (reviewCompleted)
                     {
+                        SaveCurrentProgress(&app);
+                        
                         view->visibleSide = CARD_FRONT;
                         
                         if (!AdvanceDeck(&app.deck))

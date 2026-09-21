@@ -1011,7 +1011,7 @@ void DrawSessionComplete(
     SelectObject(hdc, oldBrush);
 }
 
-static int SaveCurrentProgress(
+int SaveCurrentProgress(
     const AppState *app
 )
 {

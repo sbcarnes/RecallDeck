@@ -135,4 +135,8 @@ Flashcard *GetCurrentCard(
     Deck *deck
 );
 
+int SaveCurrentProgress(
+    const AppState *app
+);
+
 #endif
