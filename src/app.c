@@ -1021,6 +1021,24 @@ int SaveCurrentProgress(
     );
 }
 
+void ResetDeckProgress(
+    Deck *deck
+)
+{
+    if (deck == NULL)
+    {
+        return;
+    }
+
+    for (size_t i = 0;
+         i < deck->cardCount;
+         i++)
+    {
+        deck->cards[i].hits = 0;
+        deck->cards[i].misses = 0;
+    }
+}
+
 void DrawSessionProgress(
     HDC hdc,
     const Deck *deck

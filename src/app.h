@@ -139,4 +139,8 @@ int SaveCurrentProgress(
     const AppState *app
 );
 
+void ResetDeckProgress(
+    Deck *deck
+);
+
 #endif
