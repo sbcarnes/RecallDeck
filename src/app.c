@@ -85,6 +85,29 @@ static void GetReviewAgainButtonRect(
     );
 }
 
+static void GetResetProgressButtonRect(
+    const RECT *clientRect,
+    RECT *buttonRect
+)
+{
+    int buttonWidth = 160;
+    int buttonHeight = 40;
+
+    int centerX =
+        (clientRect->left + clientRect->right) / 2;
+
+    int centerY =
+        (clientRect->top + clientRect->bottom) / 2;
+
+    SetRect(
+        buttonRect,
+        centerX - buttonWidth / 2,
+        centerY + 85,
+        centerX + buttonWidth / 2,
+        centerY + 85 + buttonHeight
+    );
+}
+
 // Fisher-Yates shuffle (TODO look up later)
 static void ShuffleReviewOrder(
     Deck *deck
