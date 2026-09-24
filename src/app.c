@@ -1031,6 +1031,29 @@ void DrawSessionComplete(
         DT_CENTER | DT_VCENTER | DT_SINGLELINE
     );
     
+    RECT resetButtonRect;
+
+    GetResetProgressButtonRect(
+        clientRect,
+        &resetButtonRect
+    );
+
+    Rectangle(
+        hdc,
+        resetButtonRect.left,
+        resetButtonRect.top,
+        resetButtonRect.right,
+        resetButtonRect.bottom
+    );
+
+    DrawText(
+        hdc,
+        "Reset Progress",
+        -1,
+        &resetButtonRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
+    
     SelectObject(hdc, oldBrush);
 }
 
