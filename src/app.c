@@ -156,23 +156,44 @@ BOOL HandleSessionCompleteClick(
     POINT mousePosition
 )
 {
-    RECT buttonRect;
-    
+    RECT reviewButtonRect;
+
     GetReviewAgainButtonRect(
         clientRect,
-        &buttonRect
+        &reviewButtonRect
     );
-    
-    if (!PtInRect(
-        &buttonRect, mousePosition
-    ))
+
+    if (PtInRect(
+            &reviewButtonRect,
+            mousePosition))
     {
-        return FALSE;
+        RestartReviewSession(app);
+
+        return TRUE;
     }
-    
-    RestartReviewSession(app);
-    
-    return TRUE;
+
+    RECT resetButtonRect;
+
+    GetResetProgressButtonRect(
+        clientRect,
+        &resetButtonRect
+    );
+
+    if (PtInRect(
+            &resetButtonRect,
+            mousePosition))
+    {
+        MessageBox(
+            NULL,
+            "Reset all progress for this deck?",
+            "Reset Progress",
+            MB_OK | MB_ICONWARNING
+        );
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 static void GetAnswerButtonRects(
