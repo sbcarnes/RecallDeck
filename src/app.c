@@ -187,7 +187,7 @@ BOOL HandleSessionCompleteClick(
             NULL,
             "Reset all progress for this deck?",
             "Reset Progress",
-            MB_OK | MB_ICONWARNING
+            MB_YESNO | MB_ICONWARNING
         );
 
         return TRUE;
