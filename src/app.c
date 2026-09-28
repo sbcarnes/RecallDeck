@@ -183,12 +183,21 @@ BOOL HandleSessionCompleteClick(
             &resetButtonRect,
             mousePosition))
     {
-        MessageBox(
-            NULL,
-            "Reset all progress for this deck?",
-            "Reset Progress",
-            MB_YESNO | MB_ICONWARNING
-        );
+        int resetChoice =
+            MessageBox(
+                NULL,
+                "Reset all progress for this deck?",
+                "Reset Progress",
+                MB_YESNO | MB_ICONWARNING
+            );
+
+        if (resetChoice != IDYES)
+        {
+            return TRUE;
+        }
+
+        // Reset confirmed.
+        // Actual reset comes next.
 
         return TRUE;
     }
