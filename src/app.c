@@ -196,8 +196,7 @@ BOOL HandleSessionCompleteClick(
             return TRUE;
         }
 
-        // Reset confirmed.
-        // Actual reset comes next.
+        ResetDeckProgress(&app->deck);
 
         return TRUE;
     }
