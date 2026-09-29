@@ -197,6 +197,7 @@ BOOL HandleSessionCompleteClick(
         }
 
         ResetDeckProgress(&app->deck);
+        SaveCurrentProgress(app);
 
         return TRUE;
     }
