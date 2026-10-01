@@ -770,6 +770,18 @@ void DrawDeckLoadStatus(
         status->cardCountLoaded,
         cardCountLabel
     );
+    
+    y += rowSpacing;
+
+    DrawStatusRow(
+        hdc,
+        x,
+        y,
+        status->progressLoaded,
+        status->progressLoaded
+            ? "Progress loaded"
+            : "Progress unavailable"
+    );
 }
 
 void InitializeApp(HWND hwnd, AppState *app)
