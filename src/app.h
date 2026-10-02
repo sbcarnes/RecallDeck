@@ -32,12 +32,6 @@ typedef enum AppMode
     APP_MODE_SESSION_COMPLETE
 } AppMode;
 
-typedef struct FlashcardSeed
-{
-    const char *frontText;
-    const char *backText;
-} FlashcardSeed;
-
 typedef struct FlashcardView
 {
     RECT bounds;
