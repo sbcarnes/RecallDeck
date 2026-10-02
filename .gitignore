@@ -1,2 +1,3 @@
 build/
 bin/
+decks/*_progress.json
