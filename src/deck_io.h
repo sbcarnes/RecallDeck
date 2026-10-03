@@ -20,14 +20,6 @@ int CountDeckCards(
     const char *jsonText
 );
 
-int ExtractFirstCardFields(
-    const char *jsonText,
-    char *frontBuffer,
-    size_t frontBufferSize,
-    char *backBuffer,
-    size_t backBufferSize
-);
-
 int ExtractCardFields(
     const char *jsonText,
     size_t cardIndex,
