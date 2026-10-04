@@ -10,6 +10,8 @@ static void DrawCardBackground(HDC hdc, const FlashcardView *view);
 static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
 static void DrawRevealHint(HDC hdc, const FlashcardView *view);
 static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
+static void RestartReviewSession(AppState *app);
+static void ResetDeckProgress(Deck *deck);
 
 static void InitializeFlashcard(
     Flashcard *card,
@@ -134,7 +136,7 @@ static void ShuffleReviewOrder(
     deck->currentIndex = deck->reviewOrder[0];
 }
 
-void RestartReviewSession(
+static void RestartReviewSession(
     AppState *app
 )
 {
@@ -1109,7 +1111,7 @@ int SaveCurrentProgress(
     );
 }
 
-void ResetDeckProgress(
+static void ResetDeckProgress(
     Deck *deck
 )
 {
