@@ -1168,3 +1168,10 @@ void DrawSessionProgress(
     
     SetBkMode(hdc, oldBackgroundMode);
 }
+
+static unsigned int GetCardReviewWeight(
+    const Flashcard *card
+)
+{
+    return 1 + card->misses;
+}
