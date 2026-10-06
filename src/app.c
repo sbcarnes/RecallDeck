@@ -12,6 +12,7 @@ static void DrawRevealHint(HDC hdc, const FlashcardView *view);
 static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
 static void RestartReviewSession(AppState *app);
 static void ResetDeckProgress(Deck *deck);
+static unsigned int GetCardReviewWeight(const Flashcard *card);
 
 static void InitializeFlashcard(
     Flashcard *card,
