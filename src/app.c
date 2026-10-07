@@ -935,7 +935,7 @@ void DrawDiagnostics(
     int rowHeight = 20;
     int bottomPadding = 12;
     
-    int panelWidth = 240;
+    int panelWidth = 300;
     int panelHeight =
         headerHeight +
         ((int)deck->cardCount * rowHeight) +
@@ -994,12 +994,14 @@ void DrawDiagnostics(
         
         const Flashcard *card = &deck->cards[i];
         
+        unsigned int reviewWeight = GetCardReviewWeight(card);
+        
         int added = snprintf(
             diagnosticText + used,
             sizeof(diagnosticText) - (size_t)used,
-            "%c [%u] Hits: %u Misses: %u\n",
+            "%c [%u] Hits: %u Misses: %u Weight: %u\n",
             i == deck->currentIndex ? '>' : ' ',
-            i, card->hits, card->misses
+            (unsigned int)i, card->hits, card->misses, reviewWeight
         );
         
         if (added < 0)
