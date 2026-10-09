@@ -1176,5 +1176,17 @@ static unsigned int GetCardReviewWeight(
     const Flashcard *card
 )
 {
-    return 1 + card->misses;
+    if (card->misses <= card->hits)
+    {
+        return 1;
+    }
+    
+    unsigned int deficit = card->misses - card->hits;
+    
+    if (deficit > 4)
+    {
+        deficit = 4;
+    }
+    
+    return 1 + deficit;
 }
