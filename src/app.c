@@ -116,25 +116,47 @@ static void ShuffleReviewOrder(
     Deck *deck
 )
 {
-    if (deck->cardCount < 2)
+    for (size_t i = 0; i < deck->cardCount; i++)
     {
-        return;
+        deck->reviewOrder[i] = i;
     }
     
-    for (size_t i = deck->cardCount -1; i > 0; i--)
+    for (size_t position = 0; position < deck->cardCount; position++)
     {
-        size_t j = (size_t)(rand() % (i + 1));
+        unsigned int totalWeight = 0;
         
-        size_t temp = deck->reviewOrder[i];
+        for (size_t i = position; i < deck->cardCount; i++)
+        {
+            size_t cardIndex = deck-> reviewOrder[i];
+            
+            totalWeight += GetCardReviewWeight(&deck->cards[cardIndex]);
+        }
         
-        deck->reviewOrder[i] = deck->reviewOrder[j];
+        unsigned int roll = (unsigned int)rand() % totalWeight;
         
-        deck->reviewOrder[j] = temp;
+        size_t selectedPosition = position;
+        
+        for (size_t i = position; i < deck->cardCount; i++)
+        {
+            size_t cardIndex = deck->reviewOrder[i];
+            
+            unsigned int weight = GetCardReviewWeight(&deck->cards[cardIndex]);
+            
+            if (roll < weight)
+            {
+                selectedPosition = i;
+                break;
+            }
+            
+            roll -= weight;
+        }
+        
+        size_t temp = deck->reviewOrder[position];
+        
+        deck->reviewOrder[position] = deck->reviewOrder[selectedPosition];
+        
+        deck->reviewOrder[selectedPosition] = temp;
     }
-    
-    deck->reviewPosition = 0;
-    
-    deck->currentIndex = deck->reviewOrder[0];
 }
 
 static void RestartReviewSession(
