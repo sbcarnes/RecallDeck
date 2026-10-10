@@ -116,6 +116,11 @@ static void ShuffleReviewOrder(
     Deck *deck
 )
 {
+    if (deck == NULL || deck->cardCount == 0)
+    {
+        return;
+    }
+    
     for (size_t i = 0; i < deck->cardCount; i++)
     {
         deck->reviewOrder[i] = i;
@@ -157,6 +162,10 @@ static void ShuffleReviewOrder(
         
         deck->reviewOrder[selectedPosition] = temp;
     }
+    
+    deck->reviewPosition = 0;
+    
+    deck->currentIndex = deck->reviewOrder[0];
 }
 
 static void RestartReviewSession(
