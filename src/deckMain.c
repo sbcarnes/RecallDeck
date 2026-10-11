@@ -229,12 +229,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 
                 if (isCardClick)
                 {
-                    BOOL reviewCompleted = HandleFlashcardClick(
+                    CardReviewResult reviewResult = HandleFlashcardClick(
                         card, view,
                         mousePosition
                     );
                     
-                    if (reviewCompleted)
+                    if (reviewResult != CARD_REVIEW_NONE)
                     {
                         SaveCurrentProgress(&app);
                         

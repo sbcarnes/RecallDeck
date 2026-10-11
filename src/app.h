@@ -32,6 +32,13 @@ typedef enum AppMode
     APP_MODE_SESSION_COMPLETE
 } AppMode;
 
+typedef enum CardReviewResult
+{
+    CARD_REVIEW_NONE = 0,
+    CARD_REVIEW_MISSED,
+    CARD_REVIEW_GOT_IT
+} CardReviewResult;
+
 typedef struct FlashcardView
 {
     RECT bounds;
@@ -88,7 +95,7 @@ void BeginFlashcardPress(
     POINT mousePosition
 );
 
-BOOL HandleFlashcardClick(
+CardReviewResult HandleFlashcardClick(
     Flashcard *card,
     FlashcardView *view,
     POINT mousePosition

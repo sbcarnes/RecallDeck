@@ -665,7 +665,7 @@ void BeginFlashcardPress(
     }
 }
 
-BOOL HandleFlashcardClick(
+CardReviewResult HandleFlashcardClick(
     Flashcard *card,
     FlashcardView *view,
     POINT mousePosition
@@ -674,7 +674,7 @@ BOOL HandleFlashcardClick(
     if (view->visibleSide == CARD_FRONT)
     {
         view->visibleSide = CARD_BACK;
-        return FALSE;
+        return CARD_REVIEW_NONE;
     }
     
     RECT missedRect;
@@ -689,15 +689,15 @@ BOOL HandleFlashcardClick(
     if (PtInRect(&missedRect, mousePosition))
     {
         card->misses++;
-        return TRUE;
+        return CARD_REVIEW_MISSED;
     }
     else if (PtInRect(&gotItRect, mousePosition))
     {
         card->hits++;
-        return TRUE;
+        return CARD_REVIEW_GOT_IT;
     }
     
-    return FALSE;
+    return CARD_REVIEW_NONE;
 }
 
 static void DrawStatusDot(
