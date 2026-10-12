@@ -179,6 +179,8 @@ static void RestartReviewSession(
         return;
     }
     
+    deck->retryCount = 0;
+    
     ShuffleReviewOrder(deck);
     
     app->mode = APP_MODE_REVIEW;
@@ -900,6 +902,8 @@ void InitializeApp(HWND hwnd, AppState *app)
                 PROGRESS_FILE_PATH,
                 &app->deck
             );
+        
+        app->deck.retryCount = 0;
         
         ShuffleReviewOrder(&app->deck);
     }
