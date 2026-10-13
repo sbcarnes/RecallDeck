@@ -140,4 +140,9 @@ int SaveCurrentProgress(
     const AppState *app
 );
 
+void QueueRetryCard(
+    Deck *deck,
+    size_t cardIndex
+);
+
 #endif

@@ -1149,6 +1149,23 @@ int SaveCurrentProgress(
     );
 }
 
+void QueueRetryCard(
+    Deck *deck,
+    size_t cardIndex
+)
+{
+    if (deck == NULL ||
+        cardIndex >= deck->cardCount ||
+        deck->retryCount >= MAX_CARDS)
+    {
+        return;
+    }
+    
+    deck->retryOrder[deck->retryCount] = cardIndex;
+    
+    deck->retryCount++;
+}
+
 static void ResetDeckProgress(
     Deck *deck
 )
