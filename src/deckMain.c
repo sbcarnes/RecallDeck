@@ -246,6 +246,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         }
                     }
                     
+                    if (reviewResult == CARD_REVIEW_MISSED)
+                    {
+                        QueueRetryCard(&app.deck, app.deck.currentIndex);
+                    }
+                    
                     InvalidateRect(
                         hwnd,
                         NULL,
