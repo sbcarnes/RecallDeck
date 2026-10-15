@@ -236,6 +236,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     
                     if (reviewResult != CARD_REVIEW_NONE)
                     {
+                        if (reviewResult == CARD_REVIEW_MISSED)
+                        {
+                            QueueRetryCard(&app.deck, app.deck.currentIndex);
+                        }
+                        
                         SaveCurrentProgress(&app);
                         
                         view->visibleSide = CARD_FRONT;
@@ -244,11 +249,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         {
                             app.mode = APP_MODE_SESSION_COMPLETE;
                         }
-                    }
-                    
-                    if (reviewResult == CARD_REVIEW_MISSED)
-                    {
-                        QueueRetryCard(&app.deck, app.deck.currentIndex);
                     }
                     
                     InvalidateRect(
