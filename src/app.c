@@ -1014,18 +1014,32 @@ void DrawDiagnostics(
     
     char diagnosticText[256];
     
-    int used = snprintf(
-        diagnosticText,
-        sizeof(diagnosticText),
+    int used = 0;
+    
+    used += snprintf(
+        diagnosticText + used,
+        sizeof(diagnosticText) - (size_t)used,
         "CARD DEBUG\n\n"
     );
     
+    int retryAdded = snprintf(
+        diagnosticText + used,
+        sizeof(diagnosticText) - (size_t)used,
+        "Retries queued: %u\n\n",
+        (unsigned int)deck->retryCount
+    );
+    
+    if (retryAdded > 0)
+    {
+        used += retryAdded;
+    }
+    
     for (size_t i = 0; i < deck->cardCount; i++)
     {
-        if (used < 0 || (size_t)used >= sizeof(diagnosticText))
+        /*if (used < 0 || (size_t)used >= sizeof(diagnosticText))
         {
             break;
-        }
+        }*/
         
         const Flashcard *card = &deck->cards[i];
         
@@ -1039,12 +1053,10 @@ void DrawDiagnostics(
             (unsigned int)i, card->hits, card->misses, reviewWeight
         );
         
-        if (added < 0)
+        if (added > 0)
         {
-            break;
+            used += added;
         }
-        
-        used += added;
     }
     
     int oldBackgroundMode =
