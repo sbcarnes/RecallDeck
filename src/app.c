@@ -966,7 +966,7 @@ void DrawDiagnostics(
 {
     RECT panelRect;
     
-    int headerHeight = 50;
+    int headerHeight = 70;
     int rowHeight = 20;
     int bottomPadding = 12;
     
