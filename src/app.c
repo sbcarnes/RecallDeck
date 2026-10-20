@@ -11,6 +11,7 @@ static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *v
 static void DrawRevealHint(HDC hdc, const FlashcardView *view);
 static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
 static void GetDiagnosticsRect(const RECT *clientRect, const Deck *deck, RECT *panelRect);
+static int GetDiagnosticsContentHeight(const Deck *deck);
 static void RestartReviewSession(AppState *app);
 static void ResetDeckProgress(Deck *deck);
 static unsigned int GetCardReviewWeight(const Flashcard *card);
@@ -609,14 +610,22 @@ static void GetDiagnosticsRect(
     RECT *panelRect
 )
 {
-    int headerHeight = 70;
-    int rowHeight = 20;
-    int bottomPadding = 12;
-    
     int panelWidth = 300;
-    int panelHeight = headerHeight + ((int)deck->cardCount * rowHeight) + bottomPadding;
     
     int margin = 20;
+    
+    int contentHeight = GetDiagnosticsContentHeight(deck);
+    
+    int maxPanelHeight = clientRect->bottom - (margin * 2);
+    
+    if (maxPanelHeight < 1)
+    {
+        maxPanelHeight = 1;
+    }
+    
+    int panelHeight = contentHeight < maxPanelHeight
+        ? contentHeight
+        : maxPanelHeight;
     
     SetRect(
         panelRect,
@@ -625,6 +634,20 @@ static void GetDiagnosticsRect(
         clientRect->right - margin,
         margin + panelHeight
     );
+}
+
+static int GetDiagnosticsContentHeight(
+    const Deck *deck
+)
+{
+    int headerHeight = 70;
+    int rowHeight = 20;
+    int bottomPadding = 12;
+    
+    return
+        headerHeight +
+        ((int)deck->cardCount * rowHeight) +
+        bottomPadding;
 }
 
 void UpdateFlashcardHover(
