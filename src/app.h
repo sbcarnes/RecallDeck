@@ -77,6 +77,8 @@ typedef struct AppState
     AppMode mode;
     
     DeckLoadStatus deckLoadStatus;
+    
+    int diagnosticScrollOffset;
 } AppState;
 
 BOOL HandleSessionCompleteClick(

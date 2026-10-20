@@ -605,6 +605,7 @@ static void DrawAnswerControls(
 
 static void GetDiagnosticsRect(
     const RECT *clientRect,
+    const Deck *deck,
     RECT *panelRect
 )
 {
@@ -849,6 +850,8 @@ void InitializeApp(HWND hwnd, AppState *app)
     GetClientRect(hwnd, &app->clientRect);
     
     app->mode = APP_MODE_REVIEW;
+    
+    app->diagnosticScrollOffset = 0;
     
     InitializeFlashcardView(
         &app->cardView
