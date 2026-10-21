@@ -1017,23 +1017,10 @@ void DrawDiagnostics(
 {
     RECT panelRect;
     
-    int headerHeight = 70;
-    int rowHeight = 20;
-    int bottomPadding = 12;
-    
-    int panelWidth = 300;
-    int panelHeight =
-        headerHeight +
-        ((int)deck->cardCount * rowHeight) +
-        bottomPadding;
-    int margin = 20;
-    
-    SetRect(
-        &panelRect,
-        clientRect->right - panelWidth - margin,
-        margin,
-        clientRect->right - margin,
-        margin + panelHeight
+    GetDiagnosticsRect(
+        clientRect,
+        deck,
+        &panelRect
     );
     
     HBRUSH oldBrush =
@@ -1068,8 +1055,6 @@ void DrawDiagnostics(
         0,
         -scrollOffset
     );
-    
-    textRect.top -= scrollOffset;
     
     char diagnosticText[256];
     
