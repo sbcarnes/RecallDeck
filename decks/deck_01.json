@@ -20,6 +20,21 @@
         "id": "pt_in_rect",
         "front": "What function checks whether a point lies inside a RECT?",
         "back": "PtInRect"
+    },
+    {
+        "id": "offset_rect",
+        "front": "What function moves a RECT without changing its size?",
+        "back": "OffsetRect"
+    },
+    {
+        "id": "clip_rect",
+        "front": "What function restricts GDI drawing to a rectangular intersection?",
+        "back": "IntersectClipRect"
+    },
+    {
+        "id": "save_restore_dc",
+        "front": "What functions save and restore a device context's drawing state?",
+        "back": "SaveDC and RestoreDC"
     }
     ]
 }

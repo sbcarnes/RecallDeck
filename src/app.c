@@ -1056,7 +1056,7 @@ void DrawDiagnostics(
         -scrollOffset
     );
     
-    char diagnosticText[256];
+    char diagnosticText[4096];
     
     int used = 0;
     
