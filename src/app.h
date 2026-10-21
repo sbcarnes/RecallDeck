@@ -114,7 +114,8 @@ void DrawFlashcard(
 void DrawDiagnostics(
     HDC hdc,
     const RECT *clientRect,
-    const Deck *deck
+    const Deck *deck,
+    int scrollOffset
 );
 
 void DrawDeckLoadStatus(

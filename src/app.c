@@ -1011,7 +1011,8 @@ Flashcard *GetCurrentCard(
 void DrawDiagnostics(
     HDC hdc,
     const RECT *clientRect,
-    const Deck *deck
+    const Deck *deck,
+    int scrollOffset
 )
 {
     RECT panelRect;
@@ -1061,6 +1062,14 @@ void DrawDiagnostics(
         -12,
         -12
     );
+    
+    OffsetRect(
+        &textRect,
+        0,
+        -scrollOffset
+    );
+    
+    textRect.top -= scrollOffset;
     
     char diagnosticText[256];
     
@@ -1115,12 +1124,24 @@ void DrawDiagnostics(
             TRANSPARENT
         );
     
+    int savedDC = SaveDC(hdc);
+    
+    IntersectClipRect(
+        hdc,
+        panelRect.left,
+        panelRect.top,
+        panelRect.right,
+        panelRect.bottom
+    );
+    
     DrawText(
         hdc,
         diagnosticText,
         -1, &textRect,
         DT_LEFT | DT_TOP
     );
+    
+    RestoreDC(hdc, savedDC);
     
     SetBkMode(hdc, oldBackgroundMode);
     

@@ -55,7 +55,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 DrawSessionComplete(memDC, &clientRect);
             }
             
-            DrawDiagnostics(memDC, &clientRect, &app.deck);
+            DrawDiagnostics(memDC, &clientRect, &app.deck, app.diagnosticScrollOffset);
             DrawDeckLoadStatus(memDC, &app.deckLoadStatus);
             
             BitBlt(
