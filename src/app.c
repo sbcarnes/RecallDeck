@@ -8,6 +8,7 @@ static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
 
 static void DrawCardBackground(HDC hdc, const FlashcardView *view);
 static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
+static void DrawDiagnosticsScrollIndicator(HDC hdc, const RECT *panelRect, const Deck *deck, int scrollOffset);
 static void DrawRevealHint(HDC hdc, const FlashcardView *view);
 static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
 static void GetDiagnosticsRect(const RECT *clientRect, const Deck *deck, RECT *panelRect);
@@ -425,6 +426,63 @@ static void DrawCardText(
     );
 }
 
+static void DrawDiagnosticsScrollIndicator(
+    HDC hdc,
+    const RECT *panelRect,
+    const Deck *deck,
+    int scrollOffset
+)
+{
+    int contentHeight = GetDiagnosticsContentHeight(deck);
+    
+    int panelHeight = panelRect->bottom - panelRect->top;
+    
+    int maxScrollOffset = contentHeight - panelHeight;
+    
+    if (maxScrollOffset <= 0)
+    {
+        return;
+    }
+    
+    int dotSize = 6;
+    int margin = 8;
+    
+    int travelTop = panelRect->top + margin;
+    
+    int travelBottom = panelRect->bottom - margin - dotSize;
+    
+    int travelDistance = travelBottom - travelTop;
+    
+    if (travelDistance <= 0)
+    {
+        return;
+    }
+    
+    int dotTop = travelTop + (scrollOffset * travelDistance) / maxScrollOffset;
+    
+    HBRUSH oldBrush = (HBRUSH)SelectObject(
+                        hdc,
+                        GetStockObject(DKGRAY_BRUSH)
+                      );
+    
+    HPEN oldPen = (HPEN)SelectObject(
+                    hdc,
+                    GetStockObject(NULL_PEN)
+                  );
+    
+    int dotLeft = panelRect->right - margin - dotSize;
+    
+    Ellipse(
+        hdc,
+        dotLeft, dotTop,
+        dotLeft + dotSize,
+        dotTop + dotSize
+    );
+    
+    SelectObject(hdc, oldPen);
+    SelectObject(hdc, oldBrush);
+}
+
 static void DrawRevealHint(
     HDC hdc,
     const FlashcardView *view
@@ -614,18 +672,39 @@ static void GetDiagnosticsRect(
     
     int margin = 20;
     
+    int headerHeight = 70;
+    int rowHeight = 20;
+    int bottomPadding = 12;
+    
+    int visibleCardRows = 4;
+    
     int contentHeight = GetDiagnosticsContentHeight(deck);
     
-    int maxPanelHeight = clientRect->bottom - (margin * 2);
+    int defaultPanelHeight = 
+        headerHeight +
+        (visibleCardRows * rowHeight) +
+        bottomPadding;
+    
+    int maxPanelHeight =
+        clientRect->bottom -
+        (margin * 2);
     
     if (maxPanelHeight < 1)
     {
         maxPanelHeight = 1;
     }
     
-    int panelHeight = contentHeight < maxPanelHeight
-        ? contentHeight
-        : maxPanelHeight;
+    int panelHeight = contentHeight;
+    
+    if (panelHeight > defaultPanelHeight)
+    {
+        panelHeight = defaultPanelHeight;
+    }
+    
+    if (panelHeight > maxPanelHeight)
+    {
+        panelHeight = maxPanelHeight;
+    }
     
     SetRect(
         panelRect,
@@ -1050,6 +1129,17 @@ void DrawDiagnostics(
         -12
     );
     
+    int contentHeight = GetDiagnosticsContentHeight(deck);
+    
+    int panelHeight = panelRect.bottom - panelRect.top;
+    
+    int overflowHeight = contentHeight - panelHeight;
+    
+    if (overflowHeight > 0)
+    {
+        textRect.bottom += overflowHeight;
+    }
+    
     OffsetRect(
         &textRect,
         0,
@@ -1127,6 +1217,13 @@ void DrawDiagnostics(
     );
     
     RestoreDC(hdc, savedDC);
+    
+    DrawDiagnosticsScrollIndicator(
+        hdc,
+        &panelRect,
+        deck,
+        scrollOffset
+    );
     
     SetBkMode(hdc, oldBackgroundMode);
     
@@ -1232,6 +1329,71 @@ void QueueRetryCard(
     deck->retryOrder[deck->retryCount] = cardIndex;
     
     deck->retryCount++;
+}
+
+BOOL HandleDiagnosticsScroll(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition,
+    int wheelDelta
+)
+{
+    //(void)wheelDelta;
+    
+    RECT panelRect;
+    
+    GetDiagnosticsRect(
+        clientRect,
+        &app->deck,
+        &panelRect
+    );
+    
+    if (!PtInRect(&panelRect, mousePosition))
+    {
+        return FALSE;
+    }
+    
+    int contentHeight = 
+        GetDiagnosticsContentHeight(
+            &app->deck
+        );
+    
+    int panelHeight = panelRect.bottom - panelRect.top;
+    
+    int maxScrollOffset = contentHeight - panelHeight;
+    
+    if (maxScrollOffset < 0)
+    {
+        maxScrollOffset = 0;
+    }
+    
+    int scrollStep = 20;
+    
+    if (wheelDelta > 0)
+    {
+        app->diagnosticScrollOffset -= scrollStep;
+    }
+    else if (wheelDelta < 0)
+    {
+        app->diagnosticScrollOffset += scrollStep;
+    }
+    
+    if (app->diagnosticScrollOffset < 0)
+    {
+        app->diagnosticScrollOffset = 0;
+    }
+    
+    if (app->diagnosticScrollOffset > maxScrollOffset)
+    {
+        app->diagnosticScrollOffset = maxScrollOffset;
+    }
+    
+    return TRUE;
+    
+    /*return PtInRect(
+        &panelRect,
+        mousePosition
+    );*/
 }
 
 static void ResetDeckProgress(

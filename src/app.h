@@ -148,4 +148,11 @@ void QueueRetryCard(
     size_t cardIndex
 );
 
+BOOL HandleDiagnosticsScroll(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition,
+    int wheelDelta
+);
+
 #endif

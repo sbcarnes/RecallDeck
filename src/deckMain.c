@@ -292,6 +292,43 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+        case WM_MOUSEWHEEL:
+        {
+            RECT clientRect;
+            
+            GetClientRect(
+                hwnd,
+                &clientRect
+            );
+            
+            POINT mousePosition =
+            {
+                GET_X_LPARAM(lParam),
+                GET_Y_LPARAM(lParam)
+            };
+            
+            ScreenToClient(
+                hwnd,
+                &mousePosition
+            );
+            
+            int wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+            
+            if (HandleDiagnosticsScroll(
+                &app,
+                &clientRect,
+                mousePosition,
+                wheelDelta
+            ))
+            {
+                InvalidateRect(
+                    hwnd,
+                    NULL,
+                    FALSE
+                );
+            }
+        }
+        break;
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
 		break;
