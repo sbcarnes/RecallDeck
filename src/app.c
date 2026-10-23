@@ -672,7 +672,7 @@ static void GetDiagnosticsRect(
     
     int margin = 20;
     
-    int headerHeight = 70;
+    int headerHeight = 100;
     int rowHeight = 20;
     int bottomPadding = 12;
     
@@ -719,7 +719,7 @@ static int GetDiagnosticsContentHeight(
     const Deck *deck
 )
 {
-    int headerHeight = 70;
+    int headerHeight = 100;
     int rowHeight = 20;
     int bottomPadding = 12;
     
@@ -1168,6 +1168,43 @@ void DrawDiagnostics(
         used += retryAdded;
     }
     
+    int retriesAdded = snprintf(
+        diagnosticText + used,
+        sizeof(diagnosticText) - (size_t)used,
+        "Retry order:"
+    );
+    
+    if (retriesAdded > 0)
+    {
+        used += retriesAdded;
+    }
+    
+    for (size_t i = 0; i < deck->retryCount; i++)
+    {
+        int retryIndexAdded = snprintf(
+            diagnosticText + used,
+            sizeof(diagnosticText) - (size_t)used,
+            " %u",
+            (unsigned int)deck->retryOrder[i]
+        );
+        
+        if (retryIndexAdded > 0)
+        {
+            used += retryIndexAdded;
+        }
+    }
+    
+    int retryNewlineAdded = snprintf(
+        diagnosticText + used,
+        sizeof(diagnosticText) - (size_t)used,
+        "\n\n"
+    );
+    
+    if (retryNewlineAdded > 0)
+    {
+        used += retryNewlineAdded;
+    }
+    
     for (size_t i = 0; i < deck->cardCount; i++)
     {
         /*if (used < 0 || (size_t)used >= sizeof(diagnosticText))
@@ -1192,6 +1229,8 @@ void DrawDiagnostics(
             used += added;
         }
     }
+    
+    
     
     int oldBackgroundMode =
         SetBkMode(
