@@ -6,6 +6,7 @@
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
 
+static void CompactRetryQueue(Deck *deck);
 static void DrawCardBackground(HDC hdc, const FlashcardView *view);
 static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
 static void DrawDiagnosticsScrollIndicator(HDC hdc, const RECT *panelRect, const Deck *deck, int scrollOffset);
@@ -16,6 +17,27 @@ static int GetDiagnosticsContentHeight(const Deck *deck);
 static void RestartReviewSession(AppState *app);
 static void ResetDeckProgress(Deck *deck);
 static unsigned int GetCardReviewWeight(const Flashcard *card);
+
+static void CompactRetryQueue(
+    Deck *deck
+)
+{
+    if (deck == NULL || deck->retryPosition == 0)
+    {
+        return;
+    }
+    
+    size_t pendingCount = deck->retryCount - deck->retryPosition;
+    
+    for (size_t i = 0; i < pendingCount; i++)
+    {
+        deck->retryOrder[i] = deck->retryOrder[deck->retryPosition + i];
+    }
+    
+    deck->retryCount = pendingCount;
+    
+    deck->retryPosition = 0;
+}
 
 static void InitializeFlashcard(
     Flashcard *card,
@@ -1370,8 +1392,14 @@ void QueueRetryCard(
 )
 {
     if (deck == NULL ||
-        cardIndex >= deck->cardCount ||
-        deck->retryCount >= MAX_CARDS)
+        cardIndex >= deck->cardCount)
+    {
+        return;
+    }
+    
+    CompactRetryQueue(deck);
+    
+    if (deck->retryCount >= MAX_CARDS)
     {
         return;
     }
