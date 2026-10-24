@@ -183,6 +183,7 @@ static void RestartReviewSession(
     }
     
     deck->retryCount = 0;
+    deck->retryPosition = 0;
     
     ShuffleReviewOrder(deck);
     
@@ -1033,6 +1034,7 @@ void InitializeApp(HWND hwnd, AppState *app)
             );
         
         app->deck.retryCount = 0;
+        app->deck.retryPosition = 0;
         
         ShuffleReviewOrder(&app->deck);
     }
@@ -1066,7 +1068,25 @@ BOOL AdvanceDeck(Deck *deck)
         return FALSE;
     }
     
-    if (deck->reviewPosition + 1 >= deck->cardCount)
+    if (deck->reviewPosition + 1 < deck->cardCount)
+    {
+        deck->reviewPosition++;
+        
+        deck->currentIndex = deck->reviewOrder[deck->reviewPosition];
+        
+        return TRUE;
+    }
+    
+    if (deck->retryPosition < deck->retryCount)
+    {
+        deck->currentIndex = deck->retryOrder[deck->retryPosition];
+        
+        return TRUE;
+    }
+    
+    return FALSE;
+    
+    /*if (deck->reviewPosition + 1 >= deck->cardCount)
     {
         return FALSE;
     }
@@ -1075,7 +1095,7 @@ BOOL AdvanceDeck(Deck *deck)
     
     deck->currentIndex = deck->reviewOrder[deck->reviewPosition];
     
-    return TRUE;
+    return TRUE;*/
 }
 
 Flashcard *GetCurrentCard(

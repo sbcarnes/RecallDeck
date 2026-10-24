@@ -28,6 +28,8 @@ typedef struct Deck
     
     size_t retryOrder[MAX_CARDS];
     size_t retryCount;
+    
+    size_t retryPosition;
 } Deck;
 
 #endif
