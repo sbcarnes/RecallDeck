@@ -1081,21 +1081,12 @@ BOOL AdvanceDeck(Deck *deck)
     {
         deck->currentIndex = deck->retryOrder[deck->retryPosition];
         
+        deck->retryPosition++;
+        
         return TRUE;
     }
     
     return FALSE;
-    
-    /*if (deck->reviewPosition + 1 >= deck->cardCount)
-    {
-        return FALSE;
-    }
-    
-    deck->reviewPosition++;
-    
-    deck->currentIndex = deck->reviewOrder[deck->reviewPosition];
-    
-    return TRUE;*/
 }
 
 Flashcard *GetCurrentCard(
