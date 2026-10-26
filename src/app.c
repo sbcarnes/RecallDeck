@@ -1467,11 +1467,6 @@ BOOL HandleDiagnosticsScroll(
     }
     
     return TRUE;
-    
-    /*return PtInRect(
-        &panelRect,
-        mousePosition
-    );*/
 }
 
 static void ResetDeckProgress(
@@ -1511,13 +1506,26 @@ void DrawSessionProgress(
     
     char progressText[64];
     
-    snprintf(
-        progressText,
-        sizeof(progressText),
-        "Card %u of %u",
-        deck->reviewPosition + 1,
-        deck->cardCount
-    );
+    if (deck->retryPosition > 0)
+    {
+        snprintf(
+            progressText,
+            sizeof(progressText),
+            "Retry %u of %u",
+            (unsigned int)deck->retryPosition,
+            (unsigned int)deck->retryCount
+        );
+    }
+    else
+    {
+        snprintf(
+            progressText,
+            sizeof(progressText),
+            "Card %u of %u",
+            (unsigned int)(deck->reviewPosition + 1),
+            (unsigned int)deck->cardCount
+        );
+    }
     
     int oldBackgroundMode =
         SetBkMode(hdc, TRANSPARENT);
