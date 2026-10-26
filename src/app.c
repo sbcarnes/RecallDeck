@@ -6,6 +6,8 @@
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
 
+// Existing private forward declarations
+
 static void CompactRetryQueue(Deck *deck);
 static void DrawCardBackground(HDC hdc, const FlashcardView *view);
 static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
@@ -18,26 +20,9 @@ static void RestartReviewSession(AppState *app);
 static void ResetDeckProgress(Deck *deck);
 static unsigned int GetCardReviewWeight(const Flashcard *card);
 
-static void CompactRetryQueue(
-    Deck *deck
-)
-{
-    if (deck == NULL || deck->retryPosition == 0)
-    {
-        return;
-    }
-    
-    size_t pendingCount = deck->retryCount - deck->retryPosition;
-    
-    for (size_t i = 0; i < pendingCount; i++)
-    {
-        deck->retryOrder[i] = deck->retryOrder[deck->retryPosition + i];
-    }
-    
-    deck->retryCount = pendingCount;
-    
-    deck->retryPosition = 0;
-}
+/* =========================================================
+   Private: initialization helpers
+   ========================================================= */
 
 static void InitializeFlashcard(
     Flashcard *card,
@@ -92,48 +77,27 @@ static void InitializeFlashcardView(
     view->hoverTarget = CARD_HOVER_NONE;
 }
 
-static void GetReviewAgainButtonRect(
-    const RECT *clientRect,
-    RECT *buttonRect
+/* =========================================================
+   Private: review and session helpers
+   ========================================================= */
+   
+static unsigned int GetCardReviewWeight(
+    const Flashcard *card
 )
 {
-    int buttonWidth = 160;
-    int buttonHeight = 40;
+    if (card->misses <= card->hits)
+    {
+        return 1;
+    }
     
-    int centerX =
-        (clientRect->left + clientRect->right) / 2;
+    unsigned int deficit = card->misses - card->hits;
     
-    int centerY =
-        (clientRect->top + clientRect->bottom) / 2;
+    if (deficit > 4)
+    {
+        deficit = 4;
+    }
     
-    SetRect(
-        buttonRect,
-        centerX - buttonWidth / 2, centerY + 30,
-        centerX + buttonWidth / 2, centerY + 30 + buttonHeight
-    );
-}
-
-static void GetResetProgressButtonRect(
-    const RECT *clientRect,
-    RECT *buttonRect
-)
-{
-    int buttonWidth = 160;
-    int buttonHeight = 40;
-
-    int centerX =
-        (clientRect->left + clientRect->right) / 2;
-
-    int centerY =
-        (clientRect->top + clientRect->bottom) / 2;
-
-    SetRect(
-        buttonRect,
-        centerX - buttonWidth / 2,
-        centerY + 85,
-        centerX + buttonWidth / 2,
-        centerY + 85 + buttonHeight
-    );
+    return 1 + deficit;
 }
 
 // Fisher-Yates shuffle (TODO look up later)
@@ -193,6 +157,45 @@ static void ShuffleReviewOrder(
     deck->currentIndex = deck->reviewOrder[0];
 }
 
+static void CompactRetryQueue(
+    Deck *deck
+)
+{
+    if (deck == NULL || deck->retryPosition == 0)
+    {
+        return;
+    }
+    
+    size_t pendingCount = deck->retryCount - deck->retryPosition;
+    
+    for (size_t i = 0; i < pendingCount; i++)
+    {
+        deck->retryOrder[i] = deck->retryOrder[deck->retryPosition + i];
+    }
+    
+    deck->retryCount = pendingCount;
+    
+    deck->retryPosition = 0;
+}
+
+static void ResetDeckProgress(
+    Deck *deck
+)
+{
+    if (deck == NULL)
+    {
+        return;
+    }
+
+    for (size_t i = 0;
+         i < deck->cardCount;
+         i++)
+    {
+        deck->cards[i].hits = 0;
+        deck->cards[i].misses = 0;
+    }
+}
+
 static void RestartReviewSession(
     AppState *app
 )
@@ -212,60 +215,9 @@ static void RestartReviewSession(
     app->mode = APP_MODE_REVIEW;
 }
 
-BOOL HandleSessionCompleteClick(
-    AppState *app,
-    const RECT *clientRect,
-    POINT mousePosition
-)
-{
-    RECT reviewButtonRect;
-
-    GetReviewAgainButtonRect(
-        clientRect,
-        &reviewButtonRect
-    );
-
-    if (PtInRect(
-            &reviewButtonRect,
-            mousePosition))
-    {
-        RestartReviewSession(app);
-
-        return TRUE;
-    }
-
-    RECT resetButtonRect;
-
-    GetResetProgressButtonRect(
-        clientRect,
-        &resetButtonRect
-    );
-
-    if (PtInRect(
-            &resetButtonRect,
-            mousePosition))
-    {
-        int resetChoice =
-            MessageBox(
-                NULL,
-                "Reset all progress for this deck?",
-                "Reset Progress",
-                MB_YESNO | MB_ICONWARNING
-            );
-
-        if (resetChoice != IDYES)
-        {
-            return TRUE;
-        }
-
-        ResetDeckProgress(&app->deck);
-        SaveCurrentProgress(app);
-
-        return TRUE;
-    }
-
-    return FALSE;
-}
+/* =========================================================
+   Private: layout and geometry helpers
+   ========================================================= */
 
 static void GetAnswerButtonRects(
     const FlashcardView *view,
@@ -303,6 +255,121 @@ static void GetAnswerButtonRects(
         view->bounds.bottom - buttonMargin
     );
 }
+
+static void GetReviewAgainButtonRect(
+    const RECT *clientRect,
+    RECT *buttonRect
+)
+{
+    int buttonWidth = 160;
+    int buttonHeight = 40;
+    
+    int centerX =
+        (clientRect->left + clientRect->right) / 2;
+    
+    int centerY =
+        (clientRect->top + clientRect->bottom) / 2;
+    
+    SetRect(
+        buttonRect,
+        centerX - buttonWidth / 2, centerY + 30,
+        centerX + buttonWidth / 2, centerY + 30 + buttonHeight
+    );
+}
+
+static void GetResetProgressButtonRect(
+    const RECT *clientRect,
+    RECT *buttonRect
+)
+{
+    int buttonWidth = 160;
+    int buttonHeight = 40;
+
+    int centerX =
+        (clientRect->left + clientRect->right) / 2;
+
+    int centerY =
+        (clientRect->top + clientRect->bottom) / 2;
+
+    SetRect(
+        buttonRect,
+        centerX - buttonWidth / 2,
+        centerY + 85,
+        centerX + buttonWidth / 2,
+        centerY + 85 + buttonHeight
+    );
+}
+
+static int GetDiagnosticsContentHeight(
+    const Deck *deck
+)
+{
+    int headerHeight = 100;
+    int rowHeight = 20;
+    int bottomPadding = 12;
+    
+    return
+        headerHeight +
+        ((int)deck->cardCount * rowHeight) +
+        bottomPadding;
+}
+
+static void GetDiagnosticsRect(
+    const RECT *clientRect,
+    const Deck *deck,
+    RECT *panelRect
+)
+{
+    int panelWidth = 300;
+    
+    int margin = 20;
+    
+    int headerHeight = 100;
+    int rowHeight = 20;
+    int bottomPadding = 12;
+    
+    int visibleCardRows = 4;
+    
+    int contentHeight = GetDiagnosticsContentHeight(deck);
+    
+    int defaultPanelHeight = 
+        headerHeight +
+        (visibleCardRows * rowHeight) +
+        bottomPadding;
+    
+    int maxPanelHeight =
+        clientRect->bottom -
+        (margin * 2);
+    
+    if (maxPanelHeight < 1)
+    {
+        maxPanelHeight = 1;
+    }
+    
+    int panelHeight = contentHeight;
+    
+    if (panelHeight > defaultPanelHeight)
+    {
+        panelHeight = defaultPanelHeight;
+    }
+    
+    if (panelHeight > maxPanelHeight)
+    {
+        panelHeight = maxPanelHeight;
+    }
+    
+    SetRect(
+        panelRect,
+        clientRect->right - panelWidth - margin,
+        margin,
+        clientRect->right - margin,
+        margin + panelHeight
+    );
+}
+
+/* =========================================================
+   Private: drawing helpers
+   ========================================================= */
 
 static void DrawCardBackground(
     HDC hdc,
@@ -447,63 +514,6 @@ static void DrawCardText(
     SetBkMode(
         hdc, oldBackgroundMode
     );
-}
-
-static void DrawDiagnosticsScrollIndicator(
-    HDC hdc,
-    const RECT *panelRect,
-    const Deck *deck,
-    int scrollOffset
-)
-{
-    int contentHeight = GetDiagnosticsContentHeight(deck);
-    
-    int panelHeight = panelRect->bottom - panelRect->top;
-    
-    int maxScrollOffset = contentHeight - panelHeight;
-    
-    if (maxScrollOffset <= 0)
-    {
-        return;
-    }
-    
-    int dotSize = 6;
-    int margin = 8;
-    
-    int travelTop = panelRect->top + margin;
-    
-    int travelBottom = panelRect->bottom - margin - dotSize;
-    
-    int travelDistance = travelBottom - travelTop;
-    
-    if (travelDistance <= 0)
-    {
-        return;
-    }
-    
-    int dotTop = travelTop + (scrollOffset * travelDistance) / maxScrollOffset;
-    
-    HBRUSH oldBrush = (HBRUSH)SelectObject(
-                        hdc,
-                        GetStockObject(DKGRAY_BRUSH)
-                      );
-    
-    HPEN oldPen = (HPEN)SelectObject(
-                    hdc,
-                    GetStockObject(NULL_PEN)
-                  );
-    
-    int dotLeft = panelRect->right - margin - dotSize;
-    
-    Ellipse(
-        hdc,
-        dotLeft, dotTop,
-        dotLeft + dotSize,
-        dotTop + dotSize
-    );
-    
-    SelectObject(hdc, oldPen);
-    SelectObject(hdc, oldBrush);
 }
 
 static void DrawRevealHint(
@@ -685,72 +695,280 @@ static void DrawAnswerControls(
     DeleteObject(gotItBrush);
 }
 
-static void GetDiagnosticsRect(
-    const RECT *clientRect,
+static void DrawDiagnosticsScrollIndicator(
+    HDC hdc,
+    const RECT *panelRect,
     const Deck *deck,
-    RECT *panelRect
+    int scrollOffset
 )
 {
-    int panelWidth = 300;
-    
-    int margin = 20;
-    
-    int headerHeight = 100;
-    int rowHeight = 20;
-    int bottomPadding = 12;
-    
-    int visibleCardRows = 4;
-    
     int contentHeight = GetDiagnosticsContentHeight(deck);
     
-    int defaultPanelHeight = 
-        headerHeight +
-        (visibleCardRows * rowHeight) +
-        bottomPadding;
+    int panelHeight = panelRect->bottom - panelRect->top;
     
-    int maxPanelHeight =
-        clientRect->bottom -
-        (margin * 2);
+    int maxScrollOffset = contentHeight - panelHeight;
     
-    if (maxPanelHeight < 1)
+    if (maxScrollOffset <= 0)
     {
-        maxPanelHeight = 1;
+        return;
     }
     
-    int panelHeight = contentHeight;
+    int dotSize = 6;
+    int margin = 8;
     
-    if (panelHeight > defaultPanelHeight)
+    int travelTop = panelRect->top + margin;
+    
+    int travelBottom = panelRect->bottom - margin - dotSize;
+    
+    int travelDistance = travelBottom - travelTop;
+    
+    if (travelDistance <= 0)
     {
-        panelHeight = defaultPanelHeight;
+        return;
     }
     
-    if (panelHeight > maxPanelHeight)
+    int dotTop = travelTop + (scrollOffset * travelDistance) / maxScrollOffset;
+    
+    HBRUSH oldBrush = (HBRUSH)SelectObject(
+                        hdc,
+                        GetStockObject(DKGRAY_BRUSH)
+                      );
+    
+    HPEN oldPen = (HPEN)SelectObject(
+                    hdc,
+                    GetStockObject(NULL_PEN)
+                  );
+    
+    int dotLeft = panelRect->right - margin - dotSize;
+    
+    Ellipse(
+        hdc,
+        dotLeft, dotTop,
+        dotLeft + dotSize,
+        dotTop + dotSize
+    );
+    
+    SelectObject(hdc, oldPen);
+    SelectObject(hdc, oldBrush);
+}
+
+static void DrawStatusDot(
+    HDC hdc,
+    int x,
+    int y,
+    BOOL success
+)
+{
+    COLORREF dotColor =
+        success
+            ? RGB(70, 140, 80)
+            : RGB(180, 70, 70);
+    
+    HBRUSH brush = CreateSolidBrush(dotColor);
+    
+    if (brush == NULL)
     {
-        panelHeight = maxPanelHeight;
+        return;
     }
     
-    SetRect(
-        panelRect,
-        clientRect->right - panelWidth - margin,
-        margin,
-        clientRect->right - margin,
-        margin + panelHeight
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc, brush
+        );
+    
+    Ellipse(
+        hdc, x, y,
+        x + 10, y + 10
+    );
+    
+    SelectObject(
+        hdc,
+        oldBrush
+    );
+    
+    DeleteObject(brush);
+}
+
+static void DrawStatusRow(
+    HDC hdc, int x, int y,
+    BOOL success, const char *label
+)
+{
+    DrawStatusDot(hdc, x, y, success);
+    TextOut(hdc, x + 18, y - 3, label, (int)strlen(label));
+}
+
+/* =========================================================
+   Public: initialization
+   ========================================================= */
+
+void InitializeApp(HWND hwnd, AppState *app)
+{
+    GetClientRect(hwnd, &app->clientRect);
+    
+    app->mode = APP_MODE_REVIEW;
+    
+    app->diagnosticScrollOffset = 0;
+    
+    InitializeFlashcardView(
+        &app->cardView
+    );
+    
+    char deckFileText[8192];
+    
+    app->deckLoadStatus.fileLoaded =
+        ReadDeckFile(
+            DECK_FILE_PATH,
+            deckFileText,
+            sizeof(deckFileText)
+        );
+    
+    if(app->deckLoadStatus.fileLoaded)
+    {
+        app->deckLoadStatus.nameLoaded =
+            ExtractDeckName(
+                deckFileText,
+                app->deckLoadStatus.deckName,
+                sizeof(app->deckLoadStatus.deckName)
+            );
+    
+        int parsedCardCount = CountDeckCards(deckFileText);
+        
+        if (parsedCardCount >= 0 && parsedCardCount <= MAX_CARDS)
+        {
+            app->deckLoadStatus.cardCountLoaded = TRUE;
+            app->deckLoadStatus.cardCount = parsedCardCount;
+            
+            app->deck.cardCount = (size_t)parsedCardCount;
+            app->deck.currentIndex = 0;
+        }
+        else
+        {
+            app->deckLoadStatus.cardCountLoaded = FALSE;
+            app->deckLoadStatus.cardCount = 0;
+            app->deck.cardCount = 0;
+        }
+        
+        for (size_t i = 0; i < app->deck.cardCount; i++)
+        {
+            char cardId[64];
+            char frontText[256];
+            char backText[256];
+            
+            if (!ExtractCardFields(
+                    deckFileText,
+                    i,
+                    cardId,
+                    sizeof(cardId),
+                    frontText,
+                    sizeof(frontText),
+                    backText,
+                    sizeof(backText)))
+            {
+                // Deck parsing failed
+                // Don't silently construct half a deck
+                app->deck.cardCount = 0;
+                break;
+            }
+            
+            InitializeFlashcard(
+                &app->deck.cards[i],
+                cardId,
+                frontText,
+                backText
+            );
+            
+            app->deck.reviewOrder[i] = i;
+        }
+        
+        app->deckLoadStatus.progressLoaded =
+            LoadDeckProgress(
+                PROGRESS_FILE_PATH,
+                &app->deck
+            );
+        
+        app->deck.retryCount = 0;
+        app->deck.retryPosition = 0;
+        
+        ShuffleReviewOrder(&app->deck);
+    }
+}
+
+/* =========================================================
+   Public: deck and review state
+   ========================================================= */
+
+Flashcard *GetCurrentCard(
+    Deck *deck
+)
+{
+    return &deck->cards[deck->currentIndex];
+}
+
+BOOL AdvanceDeck(Deck *deck)
+{
+    if (deck->cardCount == 0)
+    {
+        return FALSE;
+    }
+    
+    if (deck->reviewPosition + 1 < deck->cardCount)
+    {
+        deck->reviewPosition++;
+        
+        deck->currentIndex = deck->reviewOrder[deck->reviewPosition];
+        
+        return TRUE;
+    }
+    
+    if (deck->retryPosition < deck->retryCount)
+    {
+        deck->currentIndex = deck->retryOrder[deck->retryPosition];
+        
+        deck->retryPosition++;
+        
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+void QueueRetryCard(
+    Deck *deck,
+    size_t cardIndex
+)
+{
+    if (deck == NULL ||
+        cardIndex >= deck->cardCount)
+    {
+        return;
+    }
+    
+    CompactRetryQueue(deck);
+    
+    if (deck->retryCount >= MAX_CARDS)
+    {
+        return;
+    }
+    
+    deck->retryOrder[deck->retryCount] = cardIndex;
+    
+    deck->retryCount++;
+}
+
+int SaveCurrentProgress(
+    const AppState *app
+)
+{
+    return SaveDeckProgress(
+        PROGRESS_FILE_PATH,
+        &app->deck
     );
 }
 
-static int GetDiagnosticsContentHeight(
-    const Deck *deck
-)
-{
-    int headerHeight = 100;
-    int rowHeight = 20;
-    int bottomPadding = 12;
-    
-    return
-        headerHeight +
-        ((int)deck->cardCount * rowHeight) +
-        bottomPadding;
-}
+/* =========================================================
+   Public: interaction
+   ========================================================= */
 
 void UpdateFlashcardHover(
     FlashcardView *view,
@@ -852,215 +1070,124 @@ CardReviewResult HandleFlashcardClick(
     return CARD_REVIEW_NONE;
 }
 
-static void DrawStatusDot(
-    HDC hdc,
-    int x,
-    int y,
-    BOOL success
+BOOL HandleSessionCompleteClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
 )
 {
-    COLORREF dotColor =
-        success
-            ? RGB(70, 140, 80)
-            : RGB(180, 70, 70);
-    
-    HBRUSH brush = CreateSolidBrush(dotColor);
-    
-    if (brush == NULL)
+    RECT reviewButtonRect;
+
+    GetReviewAgainButtonRect(
+        clientRect,
+        &reviewButtonRect
+    );
+
+    if (PtInRect(
+            &reviewButtonRect,
+            mousePosition))
     {
-        return;
+        RestartReviewSession(app);
+
+        return TRUE;
     }
-    
-    HBRUSH oldBrush =
-        (HBRUSH)SelectObject(
-            hdc, brush
-        );
-    
-    Ellipse(
-        hdc, x, y,
-        x + 10, y + 10
+
+    RECT resetButtonRect;
+
+    GetResetProgressButtonRect(
+        clientRect,
+        &resetButtonRect
     );
-    
-    SelectObject(
-        hdc,
-        oldBrush
-    );
-    
-    DeleteObject(brush);
+
+    if (PtInRect(
+            &resetButtonRect,
+            mousePosition))
+    {
+        int resetChoice =
+            MessageBox(
+                NULL,
+                "Reset all progress for this deck?",
+                "Reset Progress",
+                MB_YESNO | MB_ICONWARNING
+            );
+
+        if (resetChoice != IDYES)
+        {
+            return TRUE;
+        }
+
+        ResetDeckProgress(&app->deck);
+        SaveCurrentProgress(app);
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
-static void DrawStatusRow(
-    HDC hdc, int x, int y,
-    BOOL success, const char *label
+BOOL HandleDiagnosticsScroll(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition,
+    int wheelDelta
 )
 {
-    DrawStatusDot(hdc, x, y, success);
-    TextOut(hdc, x + 18, y - 3, label, (int)strlen(label));
-}
-
-void DrawDeckLoadStatus(
-    HDC hdc,
-    const DeckLoadStatus *status
-)
-{
-    int x = 20;
-    int y = 60;
-    int rowSpacing = 22;
+    //(void)wheelDelta;
     
-    DrawStatusRow(
-        hdc,
-        x,
-        y,
-        status->fileLoaded,
-        "Deck file"
+    RECT panelRect;
+    
+    GetDiagnosticsRect(
+        clientRect,
+        &app->deck,
+        &panelRect
     );
     
-    y += rowSpacing;
-    
-    DrawStatusRow(
-        hdc,
-        x,
-        y,
-        status->nameLoaded,
-        status->nameLoaded
-            ? status->deckName
-            : "Deck name unavailable"
-    );
-    
-    y += rowSpacing;
-    
-    char cardCountLabel[64];
-    
-    if (status->cardCountLoaded)
+    if (!PtInRect(&panelRect, mousePosition))
     {
-        snprintf(
-            cardCountLabel,
-            sizeof(cardCountLabel),
-            "%d cards",
-            status->cardCount
-        );
-    }
-    else
-    {
-        snprintf(
-            cardCountLabel,
-            sizeof(cardCountLabel),
-            "Card count unavailable"
-        );
+        return FALSE;
     }
     
-    DrawStatusRow(
-        hdc,
-        x,
-        y,
-        status->cardCountLoaded,
-        cardCountLabel
-    );
-    
-    y += rowSpacing;
-
-    DrawStatusRow(
-        hdc,
-        x,
-        y,
-        status->progressLoaded,
-        status->progressLoaded
-            ? "Progress loaded"
-            : "Progress unavailable"
-    );
-}
-
-void InitializeApp(HWND hwnd, AppState *app)
-{
-    GetClientRect(hwnd, &app->clientRect);
-    
-    app->mode = APP_MODE_REVIEW;
-    
-    app->diagnosticScrollOffset = 0;
-    
-    InitializeFlashcardView(
-        &app->cardView
-    );
-    
-    char deckFileText[8192];
-    
-    app->deckLoadStatus.fileLoaded =
-        ReadDeckFile(
-            DECK_FILE_PATH,
-            deckFileText,
-            sizeof(deckFileText)
+    int contentHeight = 
+        GetDiagnosticsContentHeight(
+            &app->deck
         );
     
-    if(app->deckLoadStatus.fileLoaded)
-    {
-        app->deckLoadStatus.nameLoaded =
-            ExtractDeckName(
-                deckFileText,
-                app->deckLoadStatus.deckName,
-                sizeof(app->deckLoadStatus.deckName)
-            );
+    int panelHeight = panelRect.bottom - panelRect.top;
     
-        int parsedCardCount = CountDeckCards(deckFileText);
-        
-        if (parsedCardCount >= 0 && parsedCardCount <= MAX_CARDS)
-        {
-            app->deckLoadStatus.cardCountLoaded = TRUE;
-            app->deckLoadStatus.cardCount = parsedCardCount;
-            
-            app->deck.cardCount = (size_t)parsedCardCount;
-            app->deck.currentIndex = 0;
-        }
-        else
-        {
-            app->deckLoadStatus.cardCountLoaded = FALSE;
-            app->deckLoadStatus.cardCount = 0;
-            app->deck.cardCount = 0;
-        }
-        
-        for (size_t i = 0; i < app->deck.cardCount; i++)
-        {
-            char cardId[64];
-            char frontText[256];
-            char backText[256];
-            
-            if (!ExtractCardFields(
-                    deckFileText,
-                    i,
-                    cardId,
-                    sizeof(cardId),
-                    frontText,
-                    sizeof(frontText),
-                    backText,
-                    sizeof(backText)))
-            {
-                // Deck parsing failed
-                // Don't silently construct half a deck
-                app->deck.cardCount = 0;
-                break;
-            }
-            
-            InitializeFlashcard(
-                &app->deck.cards[i],
-                cardId,
-                frontText,
-                backText
-            );
-            
-            app->deck.reviewOrder[i] = i;
-        }
-        
-        app->deckLoadStatus.progressLoaded =
-            LoadDeckProgress(
-                PROGRESS_FILE_PATH,
-                &app->deck
-            );
-        
-        app->deck.retryCount = 0;
-        app->deck.retryPosition = 0;
-        
-        ShuffleReviewOrder(&app->deck);
+    int maxScrollOffset = contentHeight - panelHeight;
+    
+    if (maxScrollOffset < 0)
+    {
+        maxScrollOffset = 0;
     }
+    
+    int scrollStep = 20;
+    
+    if (wheelDelta > 0)
+    {
+        app->diagnosticScrollOffset -= scrollStep;
+    }
+    else if (wheelDelta < 0)
+    {
+        app->diagnosticScrollOffset += scrollStep;
+    }
+    
+    if (app->diagnosticScrollOffset < 0)
+    {
+        app->diagnosticScrollOffset = 0;
+    }
+    
+    if (app->diagnosticScrollOffset > maxScrollOffset)
+    {
+        app->diagnosticScrollOffset = maxScrollOffset;
+    }
+    
+    return TRUE;
 }
+
+/* =========================================================
+   Public: drawing
+   ========================================================= */
 
 void DrawFlashcard(
     HDC hdc,
@@ -1083,42 +1210,130 @@ void DrawFlashcard(
     
 }
 
-BOOL AdvanceDeck(Deck *deck)
+void DrawSessionProgress(
+    HDC hdc,
+    const Deck *deck
+)
 {
     if (deck->cardCount == 0)
     {
-        return FALSE;
+        return;
     }
     
-    if (deck->reviewPosition + 1 < deck->cardCount)
+    RECT progressRect;
+    
+    SetRect(
+        &progressRect,
+        20, 20, 180, 50
+    );
+    
+    char progressText[64];
+    
+    if (deck->retryPosition > 0)
     {
-        deck->reviewPosition++;
-        
-        deck->currentIndex = deck->reviewOrder[deck->reviewPosition];
-        
-        return TRUE;
+        snprintf(
+            progressText,
+            sizeof(progressText),
+            "Retry %u of %u",
+            (unsigned int)deck->retryPosition,
+            (unsigned int)deck->retryCount
+        );
     }
-    
-    if (deck->retryPosition < deck->retryCount)
+    else
     {
-        deck->currentIndex = deck->retryOrder[deck->retryPosition];
-        
-        deck->retryPosition++;
-        
-        return TRUE;
+        snprintf(
+            progressText,
+            sizeof(progressText),
+            "Card %u of %u",
+            (unsigned int)(deck->reviewPosition + 1),
+            (unsigned int)deck->cardCount
+        );
     }
     
-    return FALSE;
+    int oldBackgroundMode =
+        SetBkMode(hdc, TRANSPARENT);
+    
+    DrawText(hdc,
+        progressText,
+        -1,
+        &progressRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    SetBkMode(hdc, oldBackgroundMode);
 }
 
-Flashcard *GetCurrentCard(
-    Deck *deck
+void DrawSessionComplete(
+    HDC hdc,
+    const RECT *clientRect
 )
 {
-    return &deck->cards[deck->currentIndex];
+    RECT messageRect = *clientRect;
+    
+    messageRect.bottom = (clientRect->top + clientRect->bottom) / 2;
+    
+    DrawText(
+        hdc,
+        "Review Complete",
+        -1,
+        &messageRect,
+        DT_CENTER | DT_BOTTOM | DT_SINGLELINE
+    );
+    
+    RECT buttonRect;
+    
+    GetReviewAgainButtonRect(
+        clientRect,
+        &buttonRect
+    );
+    
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc,
+            GetStockObject(LTGRAY_BRUSH)
+        );
+    
+    Rectangle(
+        hdc,
+        buttonRect.left,
+        buttonRect.top,
+        buttonRect.right,
+        buttonRect.bottom
+    );
+    
+    DrawText(
+        hdc,
+        "Review Again",
+        -1,
+        &buttonRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    RECT resetButtonRect;
+
+    GetResetProgressButtonRect(
+        clientRect,
+        &resetButtonRect
+    );
+
+    Rectangle(
+        hdc,
+        resetButtonRect.left,
+        resetButtonRect.top,
+        resetButtonRect.right,
+        resetButtonRect.bottom
+    );
+
+    DrawText(
+        hdc,
+        "Reset Progress",
+        -1,
+        &resetButtonRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    SelectObject(hdc, oldBrush);
 }
-
-
 
 void DrawDiagnostics(
     HDC hdc,
@@ -1304,257 +1519,74 @@ void DrawDiagnostics(
     SelectObject(hdc, oldBrush);
 }
 
-void DrawSessionComplete(
+void DrawDeckLoadStatus(
     HDC hdc,
-    const RECT *clientRect
+    const DeckLoadStatus *status
 )
 {
-    RECT messageRect = *clientRect;
+    int x = 20;
+    int y = 60;
+    int rowSpacing = 22;
     
-    messageRect.bottom = (clientRect->top + clientRect->bottom) / 2;
-    
-    DrawText(
+    DrawStatusRow(
         hdc,
-        "Review Complete",
-        -1,
-        &messageRect,
-        DT_CENTER | DT_BOTTOM | DT_SINGLELINE
+        x,
+        y,
+        status->fileLoaded,
+        "Deck file"
     );
     
-    RECT buttonRect;
+    y += rowSpacing;
     
-    GetReviewAgainButtonRect(
-        clientRect,
-        &buttonRect
-    );
-    
-    HBRUSH oldBrush =
-        (HBRUSH)SelectObject(
-            hdc,
-            GetStockObject(LTGRAY_BRUSH)
-        );
-    
-    Rectangle(
+    DrawStatusRow(
         hdc,
-        buttonRect.left,
-        buttonRect.top,
-        buttonRect.right,
-        buttonRect.bottom
+        x,
+        y,
+        status->nameLoaded,
+        status->nameLoaded
+            ? status->deckName
+            : "Deck name unavailable"
     );
     
-    DrawText(
-        hdc,
-        "Review Again",
-        -1,
-        &buttonRect,
-        DT_CENTER | DT_VCENTER | DT_SINGLELINE
-    );
+    y += rowSpacing;
     
-    RECT resetButtonRect;
-
-    GetResetProgressButtonRect(
-        clientRect,
-        &resetButtonRect
-    );
-
-    Rectangle(
-        hdc,
-        resetButtonRect.left,
-        resetButtonRect.top,
-        resetButtonRect.right,
-        resetButtonRect.bottom
-    );
-
-    DrawText(
-        hdc,
-        "Reset Progress",
-        -1,
-        &resetButtonRect,
-        DT_CENTER | DT_VCENTER | DT_SINGLELINE
-    );
+    char cardCountLabel[64];
     
-    SelectObject(hdc, oldBrush);
-}
-
-int SaveCurrentProgress(
-    const AppState *app
-)
-{
-    return SaveDeckProgress(
-        PROGRESS_FILE_PATH,
-        &app->deck
-    );
-}
-
-void QueueRetryCard(
-    Deck *deck,
-    size_t cardIndex
-)
-{
-    if (deck == NULL ||
-        cardIndex >= deck->cardCount)
-    {
-        return;
-    }
-    
-    CompactRetryQueue(deck);
-    
-    if (deck->retryCount >= MAX_CARDS)
-    {
-        return;
-    }
-    
-    deck->retryOrder[deck->retryCount] = cardIndex;
-    
-    deck->retryCount++;
-}
-
-BOOL HandleDiagnosticsScroll(
-    AppState *app,
-    const RECT *clientRect,
-    POINT mousePosition,
-    int wheelDelta
-)
-{
-    //(void)wheelDelta;
-    
-    RECT panelRect;
-    
-    GetDiagnosticsRect(
-        clientRect,
-        &app->deck,
-        &panelRect
-    );
-    
-    if (!PtInRect(&panelRect, mousePosition))
-    {
-        return FALSE;
-    }
-    
-    int contentHeight = 
-        GetDiagnosticsContentHeight(
-            &app->deck
-        );
-    
-    int panelHeight = panelRect.bottom - panelRect.top;
-    
-    int maxScrollOffset = contentHeight - panelHeight;
-    
-    if (maxScrollOffset < 0)
-    {
-        maxScrollOffset = 0;
-    }
-    
-    int scrollStep = 20;
-    
-    if (wheelDelta > 0)
-    {
-        app->diagnosticScrollOffset -= scrollStep;
-    }
-    else if (wheelDelta < 0)
-    {
-        app->diagnosticScrollOffset += scrollStep;
-    }
-    
-    if (app->diagnosticScrollOffset < 0)
-    {
-        app->diagnosticScrollOffset = 0;
-    }
-    
-    if (app->diagnosticScrollOffset > maxScrollOffset)
-    {
-        app->diagnosticScrollOffset = maxScrollOffset;
-    }
-    
-    return TRUE;
-}
-
-static void ResetDeckProgress(
-    Deck *deck
-)
-{
-    if (deck == NULL)
-    {
-        return;
-    }
-
-    for (size_t i = 0;
-         i < deck->cardCount;
-         i++)
-    {
-        deck->cards[i].hits = 0;
-        deck->cards[i].misses = 0;
-    }
-}
-
-void DrawSessionProgress(
-    HDC hdc,
-    const Deck *deck
-)
-{
-    if (deck->cardCount == 0)
-    {
-        return;
-    }
-    
-    RECT progressRect;
-    
-    SetRect(
-        &progressRect,
-        20, 20, 180, 50
-    );
-    
-    char progressText[64];
-    
-    if (deck->retryPosition > 0)
+    if (status->cardCountLoaded)
     {
         snprintf(
-            progressText,
-            sizeof(progressText),
-            "Retry %u of %u",
-            (unsigned int)deck->retryPosition,
-            (unsigned int)deck->retryCount
+            cardCountLabel,
+            sizeof(cardCountLabel),
+            "%d cards",
+            status->cardCount
         );
     }
     else
     {
         snprintf(
-            progressText,
-            sizeof(progressText),
-            "Card %u of %u",
-            (unsigned int)(deck->reviewPosition + 1),
-            (unsigned int)deck->cardCount
+            cardCountLabel,
+            sizeof(cardCountLabel),
+            "Card count unavailable"
         );
     }
     
-    int oldBackgroundMode =
-        SetBkMode(hdc, TRANSPARENT);
-    
-    DrawText(hdc,
-        progressText,
-        -1,
-        &progressRect,
-        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    DrawStatusRow(
+        hdc,
+        x,
+        y,
+        status->cardCountLoaded,
+        cardCountLabel
     );
     
-    SetBkMode(hdc, oldBackgroundMode);
-}
+    y += rowSpacing;
 
-static unsigned int GetCardReviewWeight(
-    const Flashcard *card
-)
-{
-    if (card->misses <= card->hits)
-    {
-        return 1;
-    }
-    
-    unsigned int deficit = card->misses - card->hits;
-    
-    if (deficit > 4)
-    {
-        deficit = 4;
-    }
-    
-    return 1 + deficit;
+    DrawStatusRow(
+        hdc,
+        x,
+        y,
+        status->progressLoaded,
+        status->progressLoaded
+            ? "Progress loaded"
+            : "Progress unavailable"
+    );
 }
