@@ -7,6 +7,16 @@
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
 
+static const int DIAGNOSTIC_PANEL_WIDTH = 300;
+static const int DIAGNOSTIC_PANEL_MARGIN = 20;
+
+static const int DIAGNOSTIC_HEADER_HEIGHT = 100;
+static const int DIAGNOSTIC_ROW_HEIGHT = 20;
+static const int DIAGNOSTIC_BOTTOM_PADDING = 12;
+static const int DIAGNOSTIC_VISIBLE_CARD_ROWS = 4;
+
+static const int DIAGNOSTIC_SCROLL_STEP = 20;
+
 /* =========================================================
    Private: initialization helpers
    ========================================================= */
@@ -291,14 +301,10 @@ static int GetDiagnosticsContentHeight(
     const Deck *deck
 )
 {
-    int headerHeight = 100;
-    int rowHeight = 20;
-    int bottomPadding = 12;
-    
     return
-        headerHeight +
-        ((int)deck->cardCount * rowHeight) +
-        bottomPadding;
+        DIAGNOSTIC_HEADER_HEIGHT +
+        ((int)deck->cardCount * DIAGNOSTIC_ROW_HEIGHT) +
+        DIAGNOSTIC_BOTTOM_PADDING;
 }
 
 static void GetDiagnosticsRect(
@@ -306,27 +312,17 @@ static void GetDiagnosticsRect(
     const Deck *deck,
     RECT *panelRect
 )
-{
-    int panelWidth = 300;
-    
-    int margin = 20;
-    
-    int headerHeight = 100;
-    int rowHeight = 20;
-    int bottomPadding = 12;
-    
-    int visibleCardRows = 4;
-    
+{    
     int contentHeight = GetDiagnosticsContentHeight(deck);
     
     int defaultPanelHeight = 
-        headerHeight +
-        (visibleCardRows * rowHeight) +
-        bottomPadding;
+        DIAGNOSTIC_HEADER_HEIGHT +
+        (DIAGNOSTIC_VISIBLE_CARD_ROWS * DIAGNOSTIC_ROW_HEIGHT) +
+        DIAGNOSTIC_BOTTOM_PADDING;
     
     int maxPanelHeight =
         clientRect->bottom -
-        (margin * 2);
+        (DIAGNOSTIC_PANEL_MARGIN * 2);
     
     if (maxPanelHeight < 1)
     {
@@ -347,10 +343,12 @@ static void GetDiagnosticsRect(
     
     SetRect(
         panelRect,
-        clientRect->right - panelWidth - margin,
-        margin,
-        clientRect->right - margin,
-        margin + panelHeight
+        clientRect->right - 
+            DIAGNOSTIC_PANEL_WIDTH - 
+            DIAGNOSTIC_PANEL_MARGIN,
+        DIAGNOSTIC_PANEL_MARGIN,
+        clientRect->right - DIAGNOSTIC_PANEL_MARGIN,
+        DIAGNOSTIC_PANEL_MARGIN + panelHeight
     );
 }
 
@@ -1119,8 +1117,6 @@ BOOL HandleDiagnosticsScroll(
     int wheelDelta
 )
 {
-    //(void)wheelDelta;
-    
     RECT panelRect;
     
     GetDiagnosticsRect(
@@ -1148,15 +1144,13 @@ BOOL HandleDiagnosticsScroll(
         maxScrollOffset = 0;
     }
     
-    int scrollStep = 20;
-    
     if (wheelDelta > 0)
     {
-        app->diagnosticScrollOffset -= scrollStep;
+        app->diagnosticScrollOffset -= DIAGNOSTIC_SCROLL_STEP;
     }
     else if (wheelDelta < 0)
     {
-        app->diagnosticScrollOffset += scrollStep;
+        app->diagnosticScrollOffset += DIAGNOSTIC_SCROLL_STEP;
     }
     
     if (app->diagnosticScrollOffset < 0)
