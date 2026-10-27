@@ -2,23 +2,10 @@
 #include "deck_io.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
-
-// Existing private forward declarations
-
-static void CompactRetryQueue(Deck *deck);
-static void DrawCardBackground(HDC hdc, const FlashcardView *view);
-static void DrawCardText(HDC hdc,  const Flashcard *card, const FlashcardView *view);
-static void DrawDiagnosticsScrollIndicator(HDC hdc, const RECT *panelRect, const Deck *deck, int scrollOffset);
-static void DrawRevealHint(HDC hdc, const FlashcardView *view);
-static void DrawAnswerControls(HDC hdc, const FlashcardView *view);
-static void GetDiagnosticsRect(const RECT *clientRect, const Deck *deck, RECT *panelRect);
-static int GetDiagnosticsContentHeight(const Deck *deck);
-static void RestartReviewSession(AppState *app);
-static void ResetDeckProgress(Deck *deck);
-static unsigned int GetCardReviewWeight(const Flashcard *card);
 
 /* =========================================================
    Private: initialization helpers
