@@ -29,7 +29,7 @@ static void InitializeFlashcard(
 )
 {
     card->hits = 0;
-    card-> misses = 0;
+    card->misses = 0;
     
     snprintf(
         card->id,
@@ -97,7 +97,7 @@ static unsigned int GetCardReviewWeight(
     return 1 + deficit;
 }
 
-// Fisher-Yates shuffle (TODO look up later)
+// Build a weighted review order without replacement
 static void ShuffleReviewOrder(
     Deck *deck
 )
@@ -118,7 +118,7 @@ static void ShuffleReviewOrder(
         
         for (size_t i = position; i < deck->cardCount; i++)
         {
-            size_t cardIndex = deck-> reviewOrder[i];
+            size_t cardIndex = deck->reviewOrder[i];
             
             totalWeight += GetCardReviewWeight(&deck->cards[cardIndex]);
         }
@@ -444,7 +444,7 @@ static void DrawCardText(
             - grading buttons on the back
     */
     
-    if (view-> visibleSide == CARD_FRONT)
+    if (view->visibleSide == CARD_FRONT)
     {
         contentRect.right -= 24;
         
@@ -808,7 +808,7 @@ void InitializeApp(HWND hwnd, AppState *app)
             sizeof(deckFileText)
         );
     
-    if(app->deckLoadStatus.fileLoaded)
+    if (app->deckLoadStatus.fileLoaded)
     {
         app->deckLoadStatus.nameLoaded =
             ExtractDeckName(
@@ -1436,11 +1436,6 @@ void DrawDiagnostics(
     
     for (size_t i = 0; i < deck->cardCount; i++)
     {
-        /*if (used < 0 || (size_t)used >= sizeof(diagnosticText))
-        {
-            break;
-        }*/
-        
         const Flashcard *card = &deck->cards[i];
         
         unsigned int reviewWeight = GetCardReviewWeight(card);
@@ -1458,8 +1453,6 @@ void DrawDiagnostics(
             used += added;
         }
     }
-    
-    
     
     int oldBackgroundMode =
         SetBkMode(
