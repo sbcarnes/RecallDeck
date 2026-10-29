@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
@@ -783,6 +784,55 @@ static void DrawStatusRow(
     TextOut(hdc, x + 18, y - 3, label, (int)strlen(label));
 }
 
+static BOOL AppendDiagnosticText(
+    char *buffer,
+    size_t bufferSize,
+    size_t *used,
+    const char *format,
+    ...
+)
+{
+    if (buffer == NULL || used == NULL ||
+        format == NULL || bufferSize == 0 ||
+        *used >= bufferSize - 1)
+    {
+        return FALSE;
+    }
+    
+    size_t remaining = bufferSize - *used;
+    
+    va_list arguments;
+    
+    va_start(arguments, format);
+    
+    int written = vsnprintf(
+        buffer + *used,
+        remaining,
+        format,
+        arguments
+    );
+    
+    va_end(arguments);
+    
+    if (written < 0)
+    {
+        buffer[*used] = '\0';
+        return FALSE;
+    }
+    
+    if ((size_t)written >= remaining)
+    {
+        *used = bufferSize - 1;
+        buffer[*used] = '\0';
+        
+        return FALSE;
+    }
+    
+    *used += (size_t)written;
+    
+    return TRUE;
+}
+
 /* =========================================================
    Public: initialization
    ========================================================= */
@@ -1375,11 +1425,11 @@ void DrawDiagnostics(
         -scrollOffset
     );
     
-    char diagnosticText[4096];
+    char diagnosticText[4096] = "";
     
-    int used = 0;
+    size_t used = 0;
     
-    used += snprintf(
+    /*used += snprintf(
         diagnosticText + used,
         sizeof(diagnosticText) - (size_t)used,
         "CARD DEBUG\n\n"
@@ -1395,7 +1445,29 @@ void DrawDiagnostics(
     if (retryAdded > 0)
     {
         used += retryAdded;
-    }
+    }*/
+    
+    AppendDiagnosticText(
+        diagnosticText,
+        sizeof(diagnosticText),
+        &used,
+        "CARD DEBUG\n\n"
+    );
+    
+    AppendDiagnosticText(
+        diagnosticText,
+        sizeof(diagnosticText),
+        &used,
+        "Retries queued: %u\n\n",
+        (unsigned int)deck->retryCount
+    );
+    
+    AppendDiagnosticText(
+        diagnosticText,
+        sizeof(diagnosticText),
+        &used,
+        "Retry order:"
+    );
     
     int retriesAdded = snprintf(
         diagnosticText + used,
@@ -1410,7 +1482,7 @@ void DrawDiagnostics(
     
     for (size_t i = 0; i < deck->retryCount; i++)
     {
-        int retryIndexAdded = snprintf(
+        /*int retryIndexAdded = snprintf(
             diagnosticText + used,
             sizeof(diagnosticText) - (size_t)used,
             " %u",
@@ -1420,10 +1492,19 @@ void DrawDiagnostics(
         if (retryIndexAdded > 0)
         {
             used += retryIndexAdded;
+        }*/
+        if (!AppendDiagnosticText(
+                diagnosticText,
+                sizeof(diagnosticText),
+                &used,
+                " %u",
+                (unsigned int)deck->retryOrder[i]))
+        {
+            break;
         }
     }
     
-    int retryNewlineAdded = snprintf(
+    /*int retryNewlineAdded = snprintf(
         diagnosticText + used,
         sizeof(diagnosticText) - (size_t)used,
         "\n\n"
@@ -1432,7 +1513,13 @@ void DrawDiagnostics(
     if (retryNewlineAdded > 0)
     {
         used += retryNewlineAdded;
-    }
+    }*/
+    AppendDiagnosticText(
+        diagnosticText,
+        sizeof(diagnosticText),
+        &used,
+        "\n\n"
+    );
     
     for (size_t i = 0; i < deck->cardCount; i++)
     {
@@ -1440,7 +1527,7 @@ void DrawDiagnostics(
         
         unsigned int reviewWeight = GetCardReviewWeight(card);
         
-        int added = snprintf(
+        /*int added = snprintf(
             diagnosticText + used,
             sizeof(diagnosticText) - (size_t)used,
             "%c [%u] Hits: %u Misses: %u Weight: %u\n",
@@ -1451,6 +1538,20 @@ void DrawDiagnostics(
         if (added > 0)
         {
             used += added;
+        }*/
+        
+        if (!AppendDiagnosticText(
+                diagnosticText,
+                sizeof(diagnosticText),
+                &used,
+                "%c [%u] Hits: %u Misses: %u Weight: %u\n",
+                i == deck->currentIndex ? '>' : ' ',
+                (unsigned int)i,
+                card->hits,
+                card->misses,
+                reviewWeight))
+        {
+            break;
         }
     }
     
