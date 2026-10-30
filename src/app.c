@@ -1429,24 +1429,6 @@ void DrawDiagnostics(
     
     size_t used = 0;
     
-    /*used += snprintf(
-        diagnosticText + used,
-        sizeof(diagnosticText) - (size_t)used,
-        "CARD DEBUG\n\n"
-    );
-    
-    int retryAdded = snprintf(
-        diagnosticText + used,
-        sizeof(diagnosticText) - (size_t)used,
-        "Retries queued: %u\n\n",
-        (unsigned int)deck->retryCount
-    );
-    
-    if (retryAdded > 0)
-    {
-        used += retryAdded;
-    }*/
-    
     AppendDiagnosticText(
         diagnosticText,
         sizeof(diagnosticText),
@@ -1482,17 +1464,6 @@ void DrawDiagnostics(
     
     for (size_t i = 0; i < deck->retryCount; i++)
     {
-        /*int retryIndexAdded = snprintf(
-            diagnosticText + used,
-            sizeof(diagnosticText) - (size_t)used,
-            " %u",
-            (unsigned int)deck->retryOrder[i]
-        );
-        
-        if (retryIndexAdded > 0)
-        {
-            used += retryIndexAdded;
-        }*/
         if (!AppendDiagnosticText(
                 diagnosticText,
                 sizeof(diagnosticText),
@@ -1504,16 +1475,6 @@ void DrawDiagnostics(
         }
     }
     
-    /*int retryNewlineAdded = snprintf(
-        diagnosticText + used,
-        sizeof(diagnosticText) - (size_t)used,
-        "\n\n"
-    );
-    
-    if (retryNewlineAdded > 0)
-    {
-        used += retryNewlineAdded;
-    }*/
     AppendDiagnosticText(
         diagnosticText,
         sizeof(diagnosticText),
@@ -1526,19 +1487,6 @@ void DrawDiagnostics(
         const Flashcard *card = &deck->cards[i];
         
         unsigned int reviewWeight = GetCardReviewWeight(card);
-        
-        /*int added = snprintf(
-            diagnosticText + used,
-            sizeof(diagnosticText) - (size_t)used,
-            "%c [%u] Hits: %u Misses: %u Weight: %u\n",
-            i == deck->currentIndex ? '>' : ' ',
-            (unsigned int)i, card->hits, card->misses, reviewWeight
-        );
-        
-        if (added > 0)
-        {
-            used += added;
-        }*/
         
         if (!AppendDiagnosticText(
                 diagnosticText,
