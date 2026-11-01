@@ -1,22 +1,24 @@
 #include <windows.h>
 #include <windowsx.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "app.h"
 
-const char g_szClassName[] = "myWindowClass";
+static const char g_szClassName[] = "myWindowClass";
 
+/* =========================================================
+   Window procedure
+   ========================================================= */
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     static AppState app;
     
-    
-	switch(msg)
-	{
-		case WM_CREATE:
+    switch(msg)
+    {
+        case WM_CREATE:
             InitializeApp(hwnd, &app);
             
         break;
@@ -46,7 +48,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             
             if (app.mode == APP_MODE_REVIEW)
             {
-                DrawFlashcard(memDC, GetCurrentCard(&app.deck), &app.cardView);
+                DrawFlashcard(
+                    memDC,
+                    GetCurrentCard(&app.deck),
+                    &app.cardView
+                );
                 
                 DrawSessionProgress(memDC, &app.deck);
             }
@@ -143,8 +149,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     );
                 }
             }
-            
-            
         }
         break;
         case WM_LBUTTONDOWN:
@@ -267,7 +271,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
                 
                 view->pressTarget = CARD_PRESS_NONE;
-                view->isPressed = FALSE;
                 view->wasDragged = FALSE;
             }
         }
@@ -329,72 +332,76 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-		case WM_CLOSE:
-			DestroyWindow(hwnd);
-		break;
-		case WM_DESTROY:
+        case WM_CLOSE:
+            DestroyWindow(hwnd);
+        break;
+        case WM_DESTROY:
             PostQuitMessage(0);
-		break;
-		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
-	}
-	return 0;
+        break;
+        default:
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    return 0;
 }
 
+/* =========================================================
+   Program entry point
+   ========================================================= */
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine, int nCmdShow)
+    LPSTR lpCmdLine, int nCmdShow)
 {   
     (void)hPrevInstance;
     (void)lpCmdLine;
     
     srand((unsigned int)time(NULL));
     
-	WNDCLASSEX wc;
-	HWND hwnd;
-	MSG Msg;
+    WNDCLASSEX wc;
+    HWND hwnd;
+    MSG Msg;
 
-	wc.cbSize		 = sizeof(WNDCLASSEX);
-	wc.style		 = 0;
-	wc.lpfnWndProc	 = WndProc;
-	wc.cbClsExtra	 = 0;
-	wc.cbWndExtra	 = 0;
-	wc.hInstance	 = hInstance;
-	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	wc.lpszMenuName  = NULL;
-	wc.lpszClassName = g_szClassName;
-	wc.hIconSm		 = LoadIcon(NULL, IDI_APPLICATION);
+    wc.cbSize		 = sizeof(WNDCLASSEX);
+    wc.style		 = 0;
+    wc.lpfnWndProc	 = WndProc;
+    wc.cbClsExtra	 = 0;
+    wc.cbWndExtra	 = 0;
+    wc.hInstance	 = hInstance;
+    wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+    wc.lpszMenuName  = NULL;
+    wc.lpszClassName = g_szClassName;
+    wc.hIconSm		 = LoadIcon(NULL, IDI_APPLICATION);
 
-	if(!RegisterClassEx(&wc))
-	{
-		MessageBox(NULL, "Window Registration Failed!", "Error!",
-			MB_ICONEXCLAMATION | MB_OK);
-		return 0;
-	}
+    if (!RegisterClassEx(&wc))
+    {
+        MessageBox(NULL, "Window Registration Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
 
-	hwnd = CreateWindowEx(
-		WS_EX_CLIENTEDGE,
-		g_szClassName,
-		"Recall Deck",
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, 800, 500,
-		NULL, NULL, hInstance, NULL);
+    hwnd = CreateWindowEx(
+        WS_EX_CLIENTEDGE,
+        g_szClassName,
+        "Recall Deck",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, 800, 500,
+        NULL, NULL, hInstance, NULL);
 
-	if(hwnd == NULL)
-	{
-		MessageBox(NULL, "Window Creation Failed!", "Error!",
-			MB_ICONEXCLAMATION | MB_OK);
-		return 0;
-	}
+    if (hwnd == NULL)
+    {
+        MessageBox(NULL, "Window Creation Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
 
-	ShowWindow(hwnd, nCmdShow);
-	UpdateWindow(hwnd);
+    ShowWindow(hwnd, nCmdShow);
+    UpdateWindow(hwnd);
 
-	while(GetMessage(&Msg, NULL, 0, 0) > 0)
-	{
-		TranslateMessage(&Msg);
-		DispatchMessage(&Msg);
-	}
-	return Msg.wParam;
+    while (GetMessage(&Msg, NULL, 0, 0) > 0)
+    {
+        TranslateMessage(&Msg);
+        DispatchMessage(&Msg);
+    }
+    return Msg.wParam;
 }

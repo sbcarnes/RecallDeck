@@ -1451,17 +1451,6 @@ void DrawDiagnostics(
         "Retry order:"
     );
     
-    int retriesAdded = snprintf(
-        diagnosticText + used,
-        sizeof(diagnosticText) - (size_t)used,
-        "Retry order:"
-    );
-    
-    if (retriesAdded > 0)
-    {
-        used += retriesAdded;
-    }
-    
     for (size_t i = 0; i < deck->retryCount; i++)
     {
         if (!AppendDiagnosticText(
