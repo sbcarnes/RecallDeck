@@ -4,6 +4,12 @@
 #include <windows.h>
 #include "deck.h"
 
+/* =========================================================
+   Types
+   ========================================================= */
+
+/* enums */
+
 typedef enum CardSide
 {
     CARD_FRONT = 0,
@@ -38,6 +44,8 @@ typedef enum CardReviewResult
     CARD_REVIEW_MISSED,
     CARD_REVIEW_GOT_IT
 } CardReviewResult;
+
+/* structs */
 
 typedef struct FlashcardView
 {
@@ -81,11 +89,34 @@ typedef struct AppState
     int diagnosticScrollOffset;
 } AppState;
 
-BOOL HandleSessionCompleteClick(
-    AppState *app,
-    const RECT *clientRect,
-    POINT mousePosition
+/* =========================================================
+   Initialization
+   ========================================================= */
+
+void InitializeApp(HWND hwnd, AppState *app);
+
+/* =========================================================
+   Deck and review state
+   ========================================================= */
+
+Flashcard *GetCurrentCard(
+    Deck *deck
 );
+
+BOOL AdvanceDeck(Deck *deck);
+
+void QueueRetryCard(
+    Deck *deck,
+    size_t cardIndex
+);
+
+int SaveCurrentProgress(
+    const AppState *app
+);
+
+/* =========================================================
+   Interaction
+   ========================================================= */
 
 void UpdateFlashcardHover(
     FlashcardView *view,
@@ -103,12 +134,37 @@ CardReviewResult HandleFlashcardClick(
     POINT mousePosition
 );
 
-void InitializeApp(HWND hwnd, AppState *app);
+BOOL HandleSessionCompleteClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
+);
+
+BOOL HandleDiagnosticsScroll(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition,
+    int wheelDelta
+);
+
+/* =========================================================
+   Drawing
+   ========================================================= */
 
 void DrawFlashcard(
     HDC hdc,
     const Flashcard *card,
     const FlashcardView *view
+);
+
+void DrawSessionProgress(
+    HDC hdc,
+    const Deck *deck
+);
+
+void DrawSessionComplete(
+    HDC hdc,
+    const RECT *clientRect
 );
 
 void DrawDiagnostics(
@@ -121,38 +177,6 @@ void DrawDiagnostics(
 void DrawDeckLoadStatus(
     HDC hdc,
     const DeckLoadStatus *status
-);
-
-void DrawSessionComplete(
-    HDC hdc,
-    const RECT *clientRect
-);
-
-void DrawSessionProgress(
-    HDC hdc,
-    const Deck *deck
-);
-
-BOOL AdvanceDeck(Deck *deck);
-
-Flashcard *GetCurrentCard(
-    Deck *deck
-);
-
-int SaveCurrentProgress(
-    const AppState *app
-);
-
-void QueueRetryCard(
-    Deck *deck,
-    size_t cardIndex
-);
-
-BOOL HandleDiagnosticsScroll(
-    AppState *app,
-    const RECT *clientRect,
-    POINT mousePosition,
-    int wheelDelta
 );
 
 #endif
