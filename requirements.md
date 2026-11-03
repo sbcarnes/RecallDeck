@@ -25,13 +25,12 @@
 - Deck organization.
 - Search and filtering.
 - Import and export.
-- Review statistict.
+- Review statistics.
 - More advanced spaced-repetition scheduling
 - Optional visual themes
 
 ## Open Questions
 
-- File format for deck storage.
 - Exact review grading scale.
 - Initial scheduling algorithm.
 - Whether dragging remains part of the final study interface.

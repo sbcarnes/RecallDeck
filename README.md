@@ -20,6 +20,7 @@ Implemented features include:
 - Session completion and restart.
 - Progress reset with confirmation.
 - Diagnostic display for deck and score state.
+- Score-aware review ordering.
 
 ## Next Direction
 
@@ -35,7 +36,6 @@ with cards becoming due based on review history and elapsed time.
 
 ## Planned Features
 
-- Score-aware review ordering.
 - Spaced-repetition scheduling.
 - Card creation and editing.
 - Deck selection and organization.

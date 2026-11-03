@@ -360,9 +360,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     HWND hwnd;
     MSG Msg;
 
-    wc.cbSize		 = sizeof(WNDCLASSEX);
-    wc.style		 = 0;
-    wc.lpfnWndProc	 = WndProc;
+    wc.cbSize        = sizeof(WNDCLASSEX);
+    wc.style         = 0;
+    wc.lpfnWndProc   = WndProc;
     wc.cbClsExtra	 = 0;
     wc.cbWndExtra	 = 0;
     wc.hInstance	 = hInstance;
