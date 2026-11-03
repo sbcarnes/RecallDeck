@@ -32,6 +32,9 @@ static void InitializeFlashcard(
     card->hits = 0;
     card->misses = 0;
     
+    card->streak = 0;
+    card->intervalDays = 0;
+    
     snprintf(
         card->id,
         sizeof(card->id),

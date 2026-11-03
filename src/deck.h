@@ -14,6 +14,9 @@ typedef struct Flashcard
     
     unsigned int hits;
     unsigned int misses;
+    
+    unsigned int streak;
+    unsigned int intervalDays;
 } Flashcard;
 
 typedef struct Deck
