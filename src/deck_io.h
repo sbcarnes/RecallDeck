@@ -2,7 +2,12 @@
 #define DECK_IO_H
 
 #include <stddef.h>
+
 #include "deck.h"
+
+/* =========================================================
+   Deck loading
+   ========================================================= */
 
 int ReadDeckFile(
     const char *filePath,
@@ -30,6 +35,10 @@ int ExtractCardFields(
     char *backBuffer,
     size_t backBufferSize
 );
+
+/* =========================================================
+   Progress persistence
+   ========================================================= */
 
 int SaveDeckProgress(
     const char *filePath,

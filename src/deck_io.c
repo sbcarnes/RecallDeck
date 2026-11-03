@@ -1,115 +1,13 @@
 #include "deck_io.h"
 
-#include <stdio.h>
-#include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stdio.h>
+#include <string.h>
 
-static const char *FindMatchingBrace(const char *objectStart);
-
-static int ExtractJsonUnsignedField(
-    const char *objectStart,
-    const char *objectEnd,
-    const char *fieldName,
-    unsigned int *value
-);
-
-static int ExtractJsonStringField(
-    const char *objectStart,
-    const char *objectEnd,
-    const char *fieldName,
-    char *buffer,
-    size_t bufferSize
-);
-
-int ReadDeckFile(
-    const char *filePath,
-    char *buffer,
-    size_t bufferSize
-)
-{
-    FILE *file = fopen(filePath, "rb");
-    
-    if (file == NULL)
-    {
-        return 0;
-    }
-    
-    size_t bytesRead =
-        fread(
-            buffer, 1,
-            bufferSize - 1,
-            file
-        );
-    
-    buffer[bytesRead] = '\0';
-    
-    fclose(file);
-    
-    return 1;
-}
-
-int ExtractDeckName(
-    const char *jsonText,
-    char *nameBuffer,
-    size_t nameBufferSize
-)
-{
-    if (jsonText == NULL ||
-        nameBuffer == NULL ||
-        nameBufferSize == 0)
-    {
-        return 0;
-    }
-    
-    const char *nameKey = strstr(jsonText, "\"name\"");
-    
-    if(nameKey == NULL)
-    {
-        return 0;
-    }
-    
-    const char *colon = strchr(nameKey, ':');
-    
-    if (colon == NULL)
-    {
-        return 0;
-    }
-    
-    const char *valueStart = colon + 1;
-    
-    while (*valueStart != '\0' && isspace((unsigned char)*valueStart))
-    {
-        valueStart++;
-    }
-    
-    if (*valueStart != '"')
-    {
-        return 0;
-    }
-    
-    valueStart++;
-    
-    const char *valueEnd = strchr(valueStart, '"');
-    
-    if (valueEnd == NULL)
-    {
-        return 0;
-    }
-    
-    size_t nameLength = (size_t)(valueEnd - valueStart);
-    
-    if (nameLength >= nameBufferSize)
-    {
-        return 0;
-    }
-    
-    memcpy(nameBuffer, valueStart, nameLength);
-    
-    nameBuffer[nameLength] = '\0';
-    
-    return 1;
-}
+/* =========================================================
+   Private: JSON parsing helpers
+   ========================================================= */
 
 static const char *FindMatchingBrace(
     const char *objectStart
@@ -397,6 +295,266 @@ static int ExtractJsonStringField(
     return 0;
 }
 
+static int ExtractJsonUnsignedField(
+    const char *objectStart,
+    const char *objectEnd,
+    const char *fieldName,
+    unsigned int *value
+)
+{
+    if (objectStart == NULL ||
+        objectEnd == NULL ||
+        fieldName == NULL ||
+        value == NULL ||
+        objectEnd <= objectStart)
+    {
+        return 0;
+    }
+    
+    size_t fieldNameLength = strlen(fieldName);
+    
+    const char *cursor = objectStart + 1;
+    
+    while (cursor < objectEnd)
+    {
+        // Skip whitespace and commas
+        // between object fields
+        
+        while (cursor < objectEnd &&
+                (isspace((unsigned char)*cursor) ||
+                 *cursor == ','))
+        {
+            cursor++;
+        }
+        
+        if (cursor >= objectEnd)
+        {
+            break;
+        }
+        
+        // RecallDeck expects a quoted key
+        if (*cursor != '"')
+        {
+            return 0;
+        }
+        
+        cursor++;
+        
+        const char *keyStart = cursor;
+        
+        while (cursor < objectEnd && *cursor != '"')
+        {
+            cursor++;
+        }
+        
+        if (cursor >= objectEnd)
+        {
+            return 0;
+        }
+        
+        const char *keyEnd = cursor;
+        
+        cursor++;
+        
+        while (cursor < objectEnd && isspace((unsigned char)*cursor))
+        {
+            cursor++;
+        }
+        
+        if (cursor >= objectEnd || *cursor != ':')
+        {
+            return 0;
+        }
+        
+        cursor++;
+        
+        while (cursor < objectEnd && isspace((unsigned char)*cursor))
+        {
+            cursor++;
+        }
+        
+        int isRequestedField =
+            (size_t)(keyEnd - keyStart) ==
+                fieldNameLength &&
+            strncmp(
+                keyStart,
+                fieldName,
+                fieldNameLength
+            ) == 0;
+            
+        // If this is the field we want,
+        // parse its unsigned int value
+        if (isRequestedField)
+        {
+            if (cursor >= objectEnd || !isdigit((unsigned char)*cursor))
+            {
+                return 0;
+            }
+            
+            unsigned int result = 0;
+            
+            while (cursor < objectEnd &&
+                   isdigit((unsigned char)*cursor))
+            {
+                unsigned int digit = (unsigned int)(*cursor - '0');
+                
+                if (result > (UINT_MAX - digit) / 10)
+                {
+                    return 0;
+                }
+                
+                result = result * 10 + digit;
+                
+                cursor++;
+            }
+            
+            *value = result;
+            
+            return 1;
+        }
+        
+        // This isn't the field we're after
+        // Skip it
+        
+        // For the progress-file schema,
+        // values are currently either
+        // strings or unsigned integers
+        if (cursor < objectEnd && *cursor == '"')
+        {
+            cursor++;
+            
+            int escaped = 0;
+            
+            while (cursor < objectEnd)
+            {
+                if (escaped)
+                {
+                    escaped = 0;
+                }
+                else if (*cursor == '\\')
+                {
+                    escaped = 1;
+                }
+                else if (*cursor == '"')
+                {
+                    cursor++;
+                    break;
+                }
+                
+                cursor++;
+            }
+        }
+        else
+        {
+            while (cursor < objectEnd &&
+                   *cursor != ',' &&
+                   *cursor != '}')
+            {
+                cursor++;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+/* =========================================================
+   Public: file input
+   ========================================================= */
+
+int ReadDeckFile(
+    const char *filePath,
+    char *buffer,
+    size_t bufferSize
+)
+{
+    FILE *file = fopen(filePath, "rb");
+    
+    if (file == NULL)
+    {
+        return 0;
+    }
+    
+    size_t bytesRead =
+        fread(
+            buffer, 1,
+            bufferSize - 1,
+            file
+        );
+    
+    buffer[bytesRead] = '\0';
+    
+    fclose(file);
+    
+    return 1;
+}
+
+/* =========================================================
+   Public: deck parsing
+   ========================================================= */
+
+int ExtractDeckName(
+    const char *jsonText,
+    char *nameBuffer,
+    size_t nameBufferSize
+)
+{
+    if (jsonText == NULL ||
+        nameBuffer == NULL ||
+        nameBufferSize == 0)
+    {
+        return 0;
+    }
+    
+    const char *nameKey = strstr(jsonText, "\"name\"");
+    
+    if(nameKey == NULL)
+    {
+        return 0;
+    }
+    
+    const char *colon = strchr(nameKey, ':');
+    
+    if (colon == NULL)
+    {
+        return 0;
+    }
+    
+    const char *valueStart = colon + 1;
+    
+    while (*valueStart != '\0' && isspace((unsigned char)*valueStart))
+    {
+        valueStart++;
+    }
+    
+    if (*valueStart != '"')
+    {
+        return 0;
+    }
+    
+    valueStart++;
+    
+    const char *valueEnd = strchr(valueStart, '"');
+    
+    if (valueEnd == NULL)
+    {
+        return 0;
+    }
+    
+    size_t nameLength = (size_t)(valueEnd - valueStart);
+    
+    if (nameLength >= nameBufferSize)
+    {
+        return 0;
+    }
+    
+    memcpy(nameBuffer, valueStart, nameLength);
+    
+    nameBuffer[nameLength] = '\0';
+    
+    return 1;
+}
+
 int CountDeckCards(
     const char *jsonText
 )
@@ -566,6 +724,10 @@ int ExtractCardFields(
     
     return 0;
 }
+
+/* =========================================================
+   Public: progress persistence
+   ========================================================= */
 
 int SaveDeckProgress(
     const char *filePath,
@@ -756,169 +918,6 @@ int LoadDeckProgress(
         }
         
         cursor = entryEnd + 1;
-    }
-    
-    return 0;
-}
-
-static int ExtractJsonUnsignedField(
-    const char *objectStart,
-    const char *objectEnd,
-    const char *fieldName,
-    unsigned int *value
-)
-{
-    if (objectStart == NULL ||
-        objectEnd == NULL ||
-        fieldName == NULL ||
-        value == NULL ||
-        objectEnd <= objectStart)
-    {
-        return 0;
-    }
-    
-    size_t fieldNameLength = strlen(fieldName);
-    
-    const char *cursor = objectStart + 1;
-    
-    while (cursor < objectEnd)
-    {
-        // Skip whitespace and commas
-        // between object fields
-        
-        while (cursor < objectEnd &&
-                (isspace((unsigned char)*cursor) ||
-                 *cursor == ','))
-        {
-            cursor++;
-        }
-        
-        if (cursor >= objectEnd)
-        {
-            break;
-        }
-        
-        // RecallDeck expects a quoted key
-        if (*cursor != '"')
-        {
-            return 0;
-        }
-        
-        cursor++;
-        
-        const char *keyStart = cursor;
-        
-        while (cursor < objectEnd && *cursor != '"')
-        {
-            cursor++;
-        }
-        
-        if (cursor >= objectEnd)
-        {
-            return 0;
-        }
-        
-        const char *keyEnd = cursor;
-        
-        cursor++;
-        
-        while (cursor < objectEnd && isspace((unsigned char)*cursor))
-        {
-            cursor++;
-        }
-        
-        if (cursor >= objectEnd || *cursor != ':')
-        {
-            return 0;
-        }
-        
-        cursor++;
-        
-        while (cursor < objectEnd && isspace((unsigned char)*cursor))
-        {
-            cursor++;
-        }
-        
-        int isRequestedField =
-            (size_t)(keyEnd - keyStart) ==
-                fieldNameLength &&
-            strncmp(
-                keyStart,
-                fieldName,
-                fieldNameLength
-            ) == 0;
-            
-        // If this is the field we want,
-        // parse its unsigned int value
-        if (isRequestedField)
-        {
-            if (cursor >= objectEnd || !isdigit((unsigned char)*cursor))
-            {
-                return 0;
-            }
-            
-            unsigned int result = 0;
-            
-            while (cursor < objectEnd &&
-                   isdigit((unsigned char)*cursor))
-            {
-                unsigned int digit = (unsigned int)(*cursor - '0');
-                
-                if (result > (UINT_MAX - digit) / 10)
-                {
-                    return 0;
-                }
-                
-                result = result * 10 + digit;
-                
-                cursor++;
-            }
-            
-            *value = result;
-            
-            return 1;
-        }
-        
-        // This isn't the field we're after
-        // Skip it
-        
-        // For the progress-file schema,
-        // values are currently either
-        // strings or unsigned integers
-        if (cursor < objectEnd && *cursor == '"')
-        {
-            cursor++;
-            
-            int escaped = 0;
-            
-            while (cursor < objectEnd)
-            {
-                if (escaped)
-                {
-                    escaped = 0;
-                }
-                else if (*cursor == '\\')
-                {
-                    escaped = 1;
-                }
-                else if (*cursor == '"')
-                {
-                    cursor++;
-                    break;
-                }
-                
-                cursor++;
-            }
-        }
-        else
-        {
-            while (cursor < objectEnd &&
-                   *cursor != ',' &&
-                   *cursor != '}')
-            {
-                cursor++;
-            }
-        }
     }
     
     return 0;
