@@ -101,6 +101,51 @@ static unsigned int GetCardReviewWeight(
     return 1 + deficit;
 }
 
+static void UpdateCardSchedule(
+    Flashcard *card,
+    CardReviewResult result
+)
+{
+    if (card == NULL)
+    {
+        return;
+    }
+
+    if (result == CARD_REVIEW_MISSED)
+    {
+        card->streak = 0;
+        card->intervalDays = 1;
+
+        return;
+    }
+
+    if (result != CARD_REVIEW_GOT_IT)
+    {
+        return;
+    }
+
+    card->streak++;
+
+    switch (card->streak)
+    {
+        case 1:
+            card->intervalDays = 1;
+            break;
+
+        case 2:
+            card->intervalDays = 3;
+            break;
+
+        case 3:
+            card->intervalDays = 7;
+            break;
+
+        default:
+            card->intervalDays *= 2;
+            break;
+    }
+}
+
 // Build a weighted review order without replacement
 static void ShuffleReviewOrder(
     Deck *deck
