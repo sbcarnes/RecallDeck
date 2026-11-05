@@ -1142,11 +1142,23 @@ CardReviewResult HandleFlashcardClick(
     if (PtInRect(&missedRect, mousePosition))
     {
         card->misses++;
+        
+        UpdateCardSchedule(
+            card,
+            CARD_REVIEW_MISSED
+        );
+        
         return CARD_REVIEW_MISSED;
     }
     else if (PtInRect(&gotItRect, mousePosition))
     {
         card->hits++;
+        
+        UpdateCardSchedule(
+            card,
+            CARD_REVIEW_GOT_IT
+        );
+        
         return CARD_REVIEW_GOT_IT;
     }
     
@@ -1529,12 +1541,14 @@ void DrawDiagnostics(
                 diagnosticText,
                 sizeof(diagnosticText),
                 &used,
-                "%c [%u] Hits: %u Misses: %u Weight: %u\n",
+                "%c [%u] H:%u M:%u W:%u Streak:%u Interval:%ud\n",
                 i == deck->currentIndex ? '>' : ' ',
                 (unsigned int)i,
                 card->hits,
                 card->misses,
-                reviewWeight))
+                reviewWeight,
+                card->streak,
+                card->intervalDays))
         {
             break;
         }
