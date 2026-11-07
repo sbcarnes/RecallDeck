@@ -17,6 +17,8 @@ typedef struct Flashcard
     
     unsigned int streak;
     unsigned int intervalDays;
+    
+    char dueDate[11];
 } Flashcard;
 
 typedef struct Deck

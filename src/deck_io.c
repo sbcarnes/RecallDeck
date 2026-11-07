@@ -904,15 +904,15 @@ int LoadDeckProgress(
         }
         
         ExtractJsonUnsignedField(
-            objectStart,
-            objectEnd,
+            cursor,
+            entryEnd,
             "streak",
             &streak
         );
         
         ExtractJsonUnsignedField(
-            objectStart,
-            objectEnd,
+            cursor,
+            entryEnd,
             "intervalDays",
             &intervalDays
         );

@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
+
+static BOOL SetCardDueDate(Flashcard *card, unsigned int intervalDays);
 
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
@@ -34,6 +37,8 @@ static void InitializeFlashcard(
     
     card->streak = 0;
     card->intervalDays = 0;
+    
+    card->dueDate[0] = '\0';
     
     snprintf(
         card->id,
@@ -115,6 +120,11 @@ static void UpdateCardSchedule(
     {
         card->streak = 0;
         card->intervalDays = 1;
+        
+        SetCardDueDate(
+            card,
+            card->intervalDays
+        );
 
         return;
     }
@@ -144,6 +154,11 @@ static void UpdateCardSchedule(
             card->intervalDays *= 2;
             break;
     }
+    
+    SetCardDueDate(
+        card,
+        card->intervalDays
+    );
 }
 
 // Build a weighted review order without replacement
@@ -259,6 +274,60 @@ static void RestartReviewSession(
     ShuffleReviewOrder(deck);
     
     app->mode = APP_MODE_REVIEW;
+}
+
+static BOOL SetCardDueDate(
+    Flashcard *card,
+    unsigned int intervalDays
+)
+{
+    if (card == NULL)
+    {
+        return FALSE;
+    }
+    
+    time_t now = time(NULL);
+    
+    if (now == (time_t)-1)
+    {
+        return FALSE;
+    }
+    
+    struct tm *localTime = localtime(&now);
+    
+    if (localTime == NULL)
+    {
+        return FALSE;
+    }
+    
+    struct tm dueTime = *localTime;
+    
+    dueTime.tm_mday += (int)intervalDays;
+    
+    dueTime.tm_hour = 0;
+    dueTime.tm_min = 0;
+    dueTime.tm_sec = 0;
+    
+    dueTime.tm_isdst = -1;
+    
+    if (mktime(&dueTime) == (time_t)-1)
+    {
+        return FALSE;
+    }
+    
+    if (strftime(
+            card->dueDate,
+            sizeof(card->dueDate),
+            "%Y-%m-%d",
+            &dueTime
+        ) == 0)
+    {
+        card->dueDate[0] = '\0';
+        
+        return FALSE;
+    }
+    
+    return TRUE;
 }
 
 /* =========================================================
@@ -1541,14 +1610,17 @@ void DrawDiagnostics(
                 diagnosticText,
                 sizeof(diagnosticText),
                 &used,
-                "%c [%u] H:%u M:%u W:%u Streak:%u Interval:%ud\n",
+                "%c [%u] H:%u M:%u W:%u Streak:%u Interval:%ud Due:%s\n",
                 i == deck->currentIndex ? '>' : ' ',
                 (unsigned int)i,
                 card->hits,
                 card->misses,
                 reviewWeight,
                 card->streak,
-                card->intervalDays))
+                card->intervalDays,
+                card->dueDate[0] != '\0'
+                    ? card->dueDate
+                    : "-"))
         {
             break;
         }
