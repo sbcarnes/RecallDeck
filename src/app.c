@@ -11,7 +11,7 @@ static BOOL SetCardDueDate(Flashcard *card, unsigned int intervalDays);
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
 
-static const int DIAGNOSTIC_PANEL_WIDTH = 300;
+static const int DIAGNOSTIC_PANEL_WIDTH = 380;
 static const int DIAGNOSTIC_PANEL_MARGIN = 20;
 
 static const int DIAGNOSTIC_HEADER_HEIGHT = 100;

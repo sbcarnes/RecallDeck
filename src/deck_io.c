@@ -767,15 +767,17 @@ int SaveDeckProgress(
                 "        {\n"
                 "            \"id\": \"%s\",\n"
                 "            \"hits\": %u,\n"
-                "            \"misses\": %u, \n"
-                "            \"streak\": %u, \n"
-                "            \"intervalDays\": %u\n"
+                "            \"misses\": %u,\n"
+                "            \"streak\": %u,\n"
+                "            \"intervalDays\": %u,\n"
+                "            \"dueDate\": \"%s\"\n"
                 "        }%s\n",
                 card->id,
                 card->hits,
                 card->misses,
                 card->streak,
                 card->intervalDays,
+                card->dueDate,
                 i + 1 < deck->cardCount
                     ? ","
                     : ""
@@ -875,6 +877,8 @@ int LoadDeckProgress(
         unsigned int streak = 0;
         unsigned int intervalDays = 0;
         
+        char dueDate[11] = "";
+        
         if (!ExtractJsonStringField(
                 cursor,
                 entryEnd,
@@ -917,6 +921,14 @@ int LoadDeckProgress(
             &intervalDays
         );
         
+        ExtractJsonStringField(
+            cursor,
+            entryEnd,
+            "dueDate",
+            dueDate,
+            sizeof(dueDate)
+        );
+        
         int matchedCard = 0;
         
         for (size_t i = 0; i < deck->cardCount; i++)
@@ -932,6 +944,14 @@ int LoadDeckProgress(
                 card->intervalDays = intervalDays;
                 
                 matchedCard = 1;
+                
+                snprintf(
+                    card->dueDate,
+                    sizeof(card->dueDate),
+                    "%s",
+                    dueDate
+                );
+                
                 break;
             }
         }
