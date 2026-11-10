@@ -87,6 +87,56 @@ static void InitializeFlashcardView(
    Private: review and session helpers
    ========================================================= */
    
+static BOOL IsCardDue(
+    const Flashcard *card
+)
+{
+    if (card == NULL)
+    {
+        return FALSE;
+    }
+    
+    /*
+        A card with no due date has never been scheduled
+        so make it available for review
+    */
+    if (card->dueDate[0] == '\0')
+    {
+        return TRUE;
+    }
+    
+    time_t now = time(NULL);
+    
+    if (now == (time_t)-1)
+    {
+        return TRUE;
+    }
+    
+    struct tm *localTime = localtime(&now);
+    
+    if (localTime == NULL)
+    {
+        return TRUE;
+    }
+    
+    char today[11];
+    
+    if (strftime(
+            today,
+            sizeof(today),
+            "%Y-%m-%d",
+            localTime
+        ) == 0)
+    {
+        return TRUE;
+    }
+    
+    return strcmp(
+        card->dueDate,
+        today
+    ) <= 0;
+}
+
 static unsigned int GetCardReviewWeight(
     const Flashcard *card
 )
@@ -1610,7 +1660,7 @@ void DrawDiagnostics(
                 diagnosticText,
                 sizeof(diagnosticText),
                 &used,
-                "%c [%u] H:%u M:%u W:%u Streak:%u Interval:%ud Due:%s\n",
+                "%c [%u] H:%u M:%u W:%u Streak:%u Interval:%ud Date:%s Due:%c\n",
                 i == deck->currentIndex ? '>' : ' ',
                 (unsigned int)i,
                 card->hits,
@@ -1620,7 +1670,10 @@ void DrawDiagnostics(
                 card->intervalDays,
                 card->dueDate[0] != '\0'
                     ? card->dueDate
-                    : "-"))
+                    : "-",
+                IsCardDue(card)
+                    ? 'Y'
+                    : 'N'))
         {
             break;
         }
