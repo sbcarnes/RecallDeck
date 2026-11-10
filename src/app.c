@@ -221,9 +221,16 @@ static void ShuffleReviewOrder(
         return;
     }
     
+    deck->reviewCount = 0;
+    
     for (size_t i = 0; i < deck->cardCount; i++)
     {
-        deck->reviewOrder[i] = i;
+        //deck->reviewOrder[i] = i;
+        if (IsCardDue(&deck->cards[i]))
+        {
+            deck->reviewOrder[deck->reviewCount] = i;
+            deck->reviewCount++;
+        }
     }
     
     for (size_t position = 0; position < deck->cardCount; position++)
@@ -265,7 +272,11 @@ static void ShuffleReviewOrder(
     
     deck->reviewPosition = 0;
     
-    deck->currentIndex = deck->reviewOrder[0];
+    //deck->currentIndex = deck->reviewOrder[0];
+    if (deck->reviewCount > 0)
+    {
+        deck->currentIndex = deck->reviewOrder[0];
+    }
 }
 
 static void CompactRetryQueue(
@@ -1114,7 +1125,7 @@ BOOL AdvanceDeck(Deck *deck)
         return FALSE;
     }
     
-    if (deck->reviewPosition + 1 < deck->cardCount)
+    if (deck->reviewPosition + 1 < deck->reviewCount)
     {
         deck->reviewPosition++;
         
@@ -1456,7 +1467,7 @@ void DrawSessionProgress(
             sizeof(progressText),
             "Card %u of %u",
             (unsigned int)(deck->reviewPosition + 1),
-            (unsigned int)deck->cardCount
+            (unsigned int)deck->reviewCount
         );
     }
     

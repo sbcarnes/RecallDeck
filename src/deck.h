@@ -35,6 +35,8 @@ typedef struct Deck
     size_t retryCount;
     
     size_t retryPosition;
+    
+    size_t reviewCount;
 } Deck;
 
 #endif
