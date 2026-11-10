@@ -11,7 +11,7 @@ static BOOL SetCardDueDate(Flashcard *card, unsigned int intervalDays);
 static const char DECK_FILE_PATH[] = "../decks/deck_01.json";
 static const char PROGRESS_FILE_PATH[] = "../decks/deck_01_progress.json";
 
-static const int DIAGNOSTIC_PANEL_WIDTH = 380;
+static const int DIAGNOSTIC_PANEL_WIDTH = 300;
 static const int DIAGNOSTIC_PANEL_MARGIN = 20;
 
 static const int DIAGNOSTIC_HEADER_HEIGHT = 100;
@@ -1660,17 +1660,12 @@ void DrawDiagnostics(
                 diagnosticText,
                 sizeof(diagnosticText),
                 &used,
-                "%c [%u] H:%u M:%u W:%u Streak:%u Interval:%ud Date:%s Due:%c\n",
+                "%c [%u] H:%u M:%u W:%u Due:%c\n",
                 i == deck->currentIndex ? '>' : ' ',
                 (unsigned int)i,
                 card->hits,
                 card->misses,
                 reviewWeight,
-                card->streak,
-                card->intervalDays,
-                card->dueDate[0] != '\0'
-                    ? card->dueDate
-                    : "-",
                 IsCardDue(card)
                     ? 'Y'
                     : 'N'))
