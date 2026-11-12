@@ -225,7 +225,6 @@ static void ShuffleReviewOrder(
     
     for (size_t i = 0; i < deck->cardCount; i++)
     {
-        //deck->reviewOrder[i] = i;
         if (IsCardDue(&deck->cards[i]))
         {
             deck->reviewOrder[deck->reviewCount] = i;
@@ -233,11 +232,11 @@ static void ShuffleReviewOrder(
         }
     }
     
-    for (size_t position = 0; position < deck->cardCount; position++)
+    for (size_t position = 0; position < deck->reviewCount; position++)
     {
         unsigned int totalWeight = 0;
         
-        for (size_t i = position; i < deck->cardCount; i++)
+        for (size_t i = position; i < deck->reviewCount; i++)
         {
             size_t cardIndex = deck->reviewOrder[i];
             
@@ -248,7 +247,7 @@ static void ShuffleReviewOrder(
         
         size_t selectedPosition = position;
         
-        for (size_t i = position; i < deck->cardCount; i++)
+        for (size_t i = position; i < deck->reviewCount; i++)
         {
             size_t cardIndex = deck->reviewOrder[i];
             
