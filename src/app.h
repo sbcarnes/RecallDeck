@@ -35,7 +35,8 @@ typedef enum CardPressTarget
 typedef enum AppMode
 {
     APP_MODE_REVIEW = 0,
-    APP_MODE_SESSION_COMPLETE
+    APP_MODE_SESSION_COMPLETE,
+    APP_MODE_NO_CARDS_DUE
 } AppMode;
 
 typedef enum CardReviewResult
@@ -163,6 +164,11 @@ void DrawSessionProgress(
 );
 
 void DrawSessionComplete(
+    HDC hdc,
+    const RECT *clientRect
+);
+
+void DrawNoCardsDue(
     HDC hdc,
     const RECT *clientRect
 );

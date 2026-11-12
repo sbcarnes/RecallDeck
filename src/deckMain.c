@@ -56,9 +56,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 
                 DrawSessionProgress(memDC, &app.deck);
             }
-            else
+            else if (app.mode == APP_MODE_SESSION_COMPLETE)
             {
                 DrawSessionComplete(memDC, &clientRect);
+            }
+            else if (app.mode == APP_MODE_NO_CARDS_DUE)
+            {
+                DrawNoCardsDue(memDC, &clientRect);
             }
             
             DrawDiagnostics(memDC, &clientRect, &app.deck, app.diagnosticScrollOffset);

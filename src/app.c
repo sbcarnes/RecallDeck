@@ -333,7 +333,17 @@ static void RestartReviewSession(
     
     ShuffleReviewOrder(deck);
     
-    app->mode = APP_MODE_REVIEW;
+    if (deck->reviewCount > 0)
+    {
+        app->mode = APP_MODE_REVIEW;
+    }
+    else
+    {
+        app->mode = APP_MODE_NO_CARDS_DUE;
+    }
+    //app->mode = APP_MODE_REVIEW;
+    
+    
 }
 
 static BOOL SetCardDueDate(
@@ -1103,6 +1113,15 @@ void InitializeApp(HWND hwnd, AppState *app)
         app->deck.retryPosition = 0;
         
         ShuffleReviewOrder(&app->deck);
+        
+        if (app->deck.reviewCount > 0)
+        {
+            app->mode = APP_MODE_REVIEW;
+        }
+        else
+        {
+            app->mode = APP_MODE_NO_CARDS_DUE;
+        }
     }
 }
 
@@ -1553,6 +1572,22 @@ void DrawSessionComplete(
     );
     
     SelectObject(hdc, oldBrush);
+}
+
+void DrawNoCardsDue(
+    HDC hdc,
+    const RECT *clientRect
+)
+{
+    RECT messageRect = *clientRect;
+    
+    DrawText(
+        hdc,
+        "No cards due",
+        -1,
+        &messageRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
 }
 
 void DrawDiagnostics(
