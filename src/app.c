@@ -211,6 +211,37 @@ static void UpdateCardSchedule(
     );
 }
 
+static void BuildDueReviewOrder(
+    Deck *deck
+)
+{
+    deck->reviewCount = 0;
+    
+    for (size_t i = 0; i < deck->cardCount; i++)
+    {
+        if (IsCardDue(&deck->cards[i]))
+        {
+            deck->reviewOrder[deck->reviewCount] = i;
+            
+            deck->reviewCount++;
+        }
+    }
+}
+
+static void BuildFullReviewOrder(
+    Deck *deck
+)
+{
+    deck->reviewCount = 0;
+    
+    for (size_t i =0; i < deck->cardCount; i++)
+    {
+        deck->reviewOrder[deck->reviewCount] = i;
+        
+        deck->reviewCount++;
+    }
+}
+
 // Build a weighted review order without replacement
 static void ShuffleReviewOrder(
     Deck *deck
@@ -221,7 +252,7 @@ static void ShuffleReviewOrder(
         return;
     }
     
-    deck->reviewCount = 0;
+    /*deck->reviewCount = 0;
     
     for (size_t i = 0; i < deck->cardCount; i++)
     {
@@ -230,7 +261,7 @@ static void ShuffleReviewOrder(
             deck->reviewOrder[deck->reviewCount] = i;
             deck->reviewCount++;
         }
-    }
+    }*/
     
     for (size_t position = 0; position < deck->reviewCount; position++)
     {
@@ -275,6 +306,29 @@ static void ShuffleReviewOrder(
     if (deck->reviewCount > 0)
     {
         deck->currentIndex = deck->reviewOrder[0];
+    }
+}
+
+static void StartPracticeSession(
+    AppState *app
+)
+{
+    Deck *deck = &app->deck;
+    
+    if (deck->cardCount == 0)
+    {
+        return;
+    }
+    
+    deck->retryCount = 0;
+    deck->retryPosition = 0;
+    
+    BuildFullReviewOrder(deck);
+    ShuffleReviewOrder(deck);
+    
+    if (deck->reviewCount > 0)
+    {
+        app->mode = APP_MODE_REVIEW;
     }
 }
 
@@ -331,6 +385,7 @@ static void RestartReviewSession(
     deck->retryCount = 0;
     deck->retryPosition = 0;
     
+    BuildDueReviewOrder(deck);
     ShuffleReviewOrder(deck);
     
     if (deck->reviewCount > 0)
@@ -341,7 +396,6 @@ static void RestartReviewSession(
     {
         app->mode = APP_MODE_NO_CARDS_DUE;
     }
-    //app->mode = APP_MODE_REVIEW;
     
     
 }
@@ -1112,6 +1166,7 @@ void InitializeApp(HWND hwnd, AppState *app)
         app->deck.retryCount = 0;
         app->deck.retryPosition = 0;
         
+        BuildDueReviewOrder(&app->deck);
         ShuffleReviewOrder(&app->deck);
         
         if (app->deck.reviewCount > 0)
@@ -1368,6 +1423,29 @@ BOOL HandleSessionCompleteClick(
     return FALSE;
 }
 
+BOOL HandleNoCardsDueClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
+)
+{
+    RECT buttonRect;
+    
+    GetReviewAgainButtonRect(
+        clientRect,
+        &buttonRect
+    );
+    
+    if (!PtInRect(&buttonRect, mousePosition))
+    {
+        return FALSE;
+    }
+    
+    StartPracticeSession(app);
+    
+    return TRUE;
+}
+
 BOOL HandleDiagnosticsScroll(
     AppState *app,
     const RECT *clientRect,
@@ -1581,6 +1659,8 @@ void DrawNoCardsDue(
 {
     RECT messageRect = *clientRect;
     
+    messageRect.bottom = (clientRect->top + clientRect->bottom) / 2;
+    
     DrawText(
         hdc,
         "No cards due",
@@ -1588,6 +1668,37 @@ void DrawNoCardsDue(
         &messageRect,
         DT_CENTER | DT_VCENTER | DT_SINGLELINE
     );
+    
+    RECT buttonRect;
+    
+    GetReviewAgainButtonRect(
+        clientRect,
+        &buttonRect
+    );
+    
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc,
+            GetStockObject(LTGRAY_BRUSH)
+        );
+    
+    Rectangle(
+        hdc,
+        buttonRect.left,
+        buttonRect.top,
+        buttonRect.right,
+        buttonRect.bottom
+    );
+    
+    DrawText(
+        hdc,
+        "Practice Anyway",
+        -1,
+        &buttonRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    SelectObject(hdc, oldBrush);
 }
 
 void DrawDiagnostics(

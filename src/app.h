@@ -141,6 +141,12 @@ BOOL HandleSessionCompleteClick(
     POINT mousePosition
 );
 
+BOOL HandleNoCardsDueClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
+);
+
 BOOL HandleDiagnosticsScroll(
     AppState *app,
     const RECT *clientRect,

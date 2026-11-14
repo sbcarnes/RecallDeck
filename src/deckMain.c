@@ -217,6 +217,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 break;
             }
             
+            if (app.mode == APP_MODE_NO_CARDS_DUE)
+            {
+                RECT clientRect;
+                
+                GetClientRect(
+                    hwnd,
+                    &clientRect
+                );
+                
+                if (HandleNoCardsDueClick(
+                        &app,
+                        &clientRect,
+                        mousePosition
+                    ))
+                {
+                    InvalidateRect(
+                        hwnd,
+                        NULL,
+                        FALSE
+                    );
+                }
+            }
+            
             if (app.mode != APP_MODE_REVIEW)
             {
                 break;
