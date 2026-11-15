@@ -368,6 +368,11 @@ static void ResetDeckProgress(
     {
         deck->cards[i].hits = 0;
         deck->cards[i].misses = 0;
+        
+        deck->cards[i].streak = 0;
+        deck->cards[i].intervalDays = 0;
+        
+        deck->cards[i].dueDate[0] = '\0';
     }
 }
 
