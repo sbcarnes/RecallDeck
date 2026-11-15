@@ -313,6 +313,8 @@ static void StartPracticeSession(
     AppState *app
 )
 {
+    app->reviewSessionType = REVIEW_SESSION_PRACTICE;
+    
     Deck *deck = &app->deck;
     
     if (deck->cardCount == 0)
@@ -1090,6 +1092,8 @@ void InitializeApp(HWND hwnd, AppState *app)
     app->mode = APP_MODE_REVIEW;
     
     app->diagnosticScrollOffset = 0;
+    
+    app->reviewSessionType = REVIEW_SESSION_SCHEDULED;
     
     InitializeFlashcardView(
         &app->cardView

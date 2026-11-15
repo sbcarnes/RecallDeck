@@ -46,6 +46,12 @@ typedef enum CardReviewResult
     CARD_REVIEW_GOT_IT
 } CardReviewResult;
 
+typedef enum ReviewSessionType
+{
+    REVIEW_SESSION_SCHEDULED = 0,
+    REVIEW_SESSION_PRACTICE
+} ReviewSessionType;
+
 /* structs */
 
 typedef struct FlashcardView
@@ -88,6 +94,8 @@ typedef struct AppState
     DeckLoadStatus deckLoadStatus;
     
     int diagnosticScrollOffset;
+    
+    ReviewSessionType reviewSessionType;
 } AppState;
 
 /* =========================================================
