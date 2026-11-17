@@ -119,6 +119,11 @@ void QueueRetryCard(
     size_t cardIndex
 );
 
+void RecordReviewResult(
+    AppState *app,
+    CardReviewResult result
+);
+
 int SaveCurrentProgress(
     const AppState *app
 );
@@ -138,7 +143,6 @@ void BeginFlashcardPress(
 );
 
 CardReviewResult HandleFlashcardClick(
-    Flashcard *card,
     FlashcardView *view,
     POINT mousePosition
 );

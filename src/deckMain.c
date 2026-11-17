@@ -245,7 +245,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 break;
             }
             
-            Flashcard *card = GetCurrentCard(&app.deck);
             FlashcardView *view = &app.cardView;
             
             if (view->isPressed)
@@ -261,18 +260,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 if (isCardClick)
                 {
                     CardReviewResult reviewResult = HandleFlashcardClick(
-                        card, view,
+                        view,
                         mousePosition
                     );
                     
                     if (reviewResult != CARD_REVIEW_NONE)
                     {
+                        RecordReviewResult(&app, reviewResult);
+                        
                         if (reviewResult == CARD_REVIEW_MISSED)
                         {
                             QueueRetryCard(&app.deck, app.deck.currentIndex);
                         }
-                        
-                        SaveCurrentProgress(&app);
                         
                         view->visibleSide = CARD_FRONT;
                         

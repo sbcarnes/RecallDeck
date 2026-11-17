@@ -1251,6 +1251,39 @@ void QueueRetryCard(
     deck->retryCount++;
 }
 
+void RecordReviewResult(
+    AppState *app,
+    CardReviewResult result
+)
+{
+    if (app == NULL || result == CARD_REVIEW_NONE)
+    {
+        return;
+    }
+    
+    if (app->reviewSessionType != REVIEW_SESSION_SCHEDULED)
+    {
+        return;
+    }
+    
+    Flashcard *card = GetCurrentCard(&app->deck);
+    
+    if (card == NULL)
+    {
+        return;
+    }
+    if (result == CARD_REVIEW_MISSED)
+    {
+        card->misses++;
+    }
+    else if (result == CARD_REVIEW_GOT_IT)
+    {
+        card->hits++;
+    }
+    
+    UpdateCardSchedule(card, result);
+}
+
 int SaveCurrentProgress(
     const AppState *app
 )
@@ -1331,7 +1364,6 @@ void BeginFlashcardPress(
 }
 
 CardReviewResult HandleFlashcardClick(
-    Flashcard *card,
     FlashcardView *view,
     POINT mousePosition
 )
@@ -1353,24 +1385,10 @@ CardReviewResult HandleFlashcardClick(
     
     if (PtInRect(&missedRect, mousePosition))
     {
-        card->misses++;
-        
-        UpdateCardSchedule(
-            card,
-            CARD_REVIEW_MISSED
-        );
-        
         return CARD_REVIEW_MISSED;
     }
     else if (PtInRect(&gotItRect, mousePosition))
     {
-        card->hits++;
-        
-        UpdateCardSchedule(
-            card,
-            CARD_REVIEW_GOT_IT
-        );
-        
         return CARD_REVIEW_GOT_IT;
     }
     
