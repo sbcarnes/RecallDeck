@@ -252,17 +252,6 @@ static void ShuffleReviewOrder(
         return;
     }
     
-    /*deck->reviewCount = 0;
-    
-    for (size_t i = 0; i < deck->cardCount; i++)
-    {
-        if (IsCardDue(&deck->cards[i]))
-        {
-            deck->reviewOrder[deck->reviewCount] = i;
-            deck->reviewCount++;
-        }
-    }*/
-    
     for (size_t position = 0; position < deck->reviewCount; position++)
     {
         unsigned int totalWeight = 0;
@@ -388,6 +377,8 @@ static void RestartReviewSession(
     {
         return;
     }
+    
+    app->reviewSessionType = REVIEW_SESSION_PRACTICE;
     
     deck->retryCount = 0;
     deck->retryPosition = 0;
@@ -1282,6 +1273,7 @@ void RecordReviewResult(
     }
     
     UpdateCardSchedule(card, result);
+    SaveCurrentProgress(app);
 }
 
 int SaveCurrentProgress(
