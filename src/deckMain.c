@@ -46,7 +46,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 (HBRUSH)(COLOR_WINDOW + 1)
             );
             
-            if (app.mode == APP_MODE_REVIEW)
+            if (app.reviewMode == REVIEW_MODE_ACTIVE)
             {
                 DrawFlashcard(
                     memDC,
@@ -56,11 +56,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 
                 DrawSessionProgress(memDC, &app.deck);
             }
-            else if (app.mode == APP_MODE_SESSION_COMPLETE)
+            else if (app.reviewMode == REVIEW_MODE_SESSION_COMPLETE)
             {
                 DrawSessionComplete(memDC, &clientRect);
             }
-            else if (app.mode == APP_MODE_NO_CARDS_DUE)
+            else if (app.reviewMode == REVIEW_MODE_NO_CARDS_DUE)
             {
                 DrawNoCardsDue(memDC, &clientRect);
             }
@@ -87,7 +87,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_MOUSEMOVE:
         {
-            if (app.mode != APP_MODE_REVIEW)
+            if (app.reviewMode != REVIEW_MODE_ACTIVE)
             {
                 break;
             }
@@ -157,7 +157,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_LBUTTONDOWN:
         {
-            if (app.mode != APP_MODE_REVIEW)
+            if (app.reviewMode != REVIEW_MODE_ACTIVE)
             {
                 break;
             }
@@ -201,7 +201,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 GET_Y_LPARAM(lParam)
             };
             
-            if (app.mode == APP_MODE_SESSION_COMPLETE)
+            if (app.reviewMode == REVIEW_MODE_SESSION_COMPLETE)
             {
                 RECT clientRect;
                 
@@ -217,7 +217,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 break;
             }
             
-            if (app.mode == APP_MODE_NO_CARDS_DUE)
+            if (app.reviewMode == REVIEW_MODE_NO_CARDS_DUE)
             {
                 RECT clientRect;
                 
@@ -240,7 +240,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
             }
             
-            if (app.mode != APP_MODE_REVIEW)
+            if (app.reviewMode != REVIEW_MODE_ACTIVE)
             {
                 break;
             }
@@ -277,7 +277,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         
                         if (!AdvanceDeck(&app.deck))
                         {
-                            app.mode = APP_MODE_SESSION_COMPLETE;
+                            app.reviewMode = REVIEW_MODE_SESSION_COMPLETE;
                         }
                     }
                     

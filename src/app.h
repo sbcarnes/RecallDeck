@@ -35,9 +35,15 @@ typedef enum CardPressTarget
 typedef enum AppMode
 {
     APP_MODE_REVIEW = 0,
-    APP_MODE_SESSION_COMPLETE,
-    APP_MODE_NO_CARDS_DUE
+    APP_MODE_EDITOR
 } AppMode;
+
+typedef enum ReviewMode
+{
+    REVIEW_MODE_ACTIVE = 0,
+    REVIEW_MODE_SESSION_COMPLETE,
+    REVIEW_MODE_NO_CARDS_DUE
+} ReviewMode;
 
 typedef enum CardReviewResult
 {
@@ -90,6 +96,8 @@ typedef struct AppState
     FlashcardView cardView;
     
     AppMode mode;
+    
+    ReviewMode reviewMode;
     
     DeckLoadStatus deckLoadStatus;
     

@@ -319,7 +319,7 @@ static void StartPracticeSession(
     
     if (deck->reviewCount > 0)
     {
-        app->mode = APP_MODE_REVIEW;
+        app->reviewMode = REVIEW_MODE_ACTIVE;
     }
 }
 
@@ -388,11 +388,11 @@ static void RestartReviewSession(
     
     if (deck->reviewCount > 0)
     {
-        app->mode = APP_MODE_REVIEW;
+        app->reviewMode = REVIEW_MODE_ACTIVE;
     }
     else
     {
-        app->mode = APP_MODE_NO_CARDS_DUE;
+        app->reviewMode = REVIEW_MODE_NO_CARDS_DUE;
     }
     
     
@@ -1082,6 +1082,8 @@ void InitializeApp(HWND hwnd, AppState *app)
     
     app->mode = APP_MODE_REVIEW;
     
+    app->reviewMode = REVIEW_MODE_ACTIVE;
+    
     app->diagnosticScrollOffset = 0;
     
     app->reviewSessionType = REVIEW_SESSION_SCHEDULED;
@@ -1171,11 +1173,11 @@ void InitializeApp(HWND hwnd, AppState *app)
         
         if (app->deck.reviewCount > 0)
         {
-            app->mode = APP_MODE_REVIEW;
+            app->reviewMode = REVIEW_MODE_ACTIVE;
         }
         else
         {
-            app->mode = APP_MODE_NO_CARDS_DUE;
+            app->reviewMode = REVIEW_MODE_NO_CARDS_DUE;
         }
     }
 }
