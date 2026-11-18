@@ -1435,6 +1435,7 @@ BOOL HandleSessionCompleteClick(
 
         ResetDeckProgress(&app->deck);
         SaveCurrentProgress(app);
+        RestartReviewSession(app);
 
         return TRUE;
     }
