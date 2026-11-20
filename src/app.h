@@ -35,6 +35,7 @@ typedef enum CardPressTarget
 typedef enum AppMode
 {
     APP_MODE_REVIEW = 0,
+    APP_MODE_DECK_SELECT,
     APP_MODE_EDITOR
 } AppMode;
 

@@ -378,7 +378,7 @@ static void RestartReviewSession(
         return;
     }
     
-    app->reviewSessionType = REVIEW_SESSION_PRACTICE;
+    app->reviewSessionType = REVIEW_SESSION_SCHEDULED;
     
     deck->retryCount = 0;
     deck->retryPosition = 0;
