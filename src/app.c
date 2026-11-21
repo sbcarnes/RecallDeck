@@ -592,6 +592,43 @@ static void GetDiagnosticsRect(
     );
 }
 
+static void GetModeTabRects(
+    RECT *reviewRect,
+    RECT *deckRect,
+    RECT *editorRect
+)
+{
+    const int left = 20;
+    const int top = 20;
+    const int width = 100;
+    const int height = 30;
+    const int gap = 8;
+    
+    SetRect(
+        reviewRect,
+        left,
+        top,
+        left + width,
+        top + height
+    );
+    
+    SetRect(
+        deckRect,
+        reviewRect->right + gap,
+        top,
+        reviewRect->right + gap + width,
+        top + height
+    );
+    
+    SetRect(
+        editorRect,
+        deckRect->right + gap,
+        top,
+        deckRect->right + gap + width,
+        top + height
+    );
+}
+
 /* =========================================================
    Private: drawing helpers
    ========================================================= */
@@ -1524,6 +1561,48 @@ BOOL HandleDiagnosticsScroll(
     return TRUE;
 }
 
+BOOL HandleModeTabClick(
+    AppState *app,
+    POINT mousePosition
+)
+{
+    RECT reviewRect;
+    RECT deckRect;
+    RECT editorRect;
+    
+    GetModeTabRects(
+        &reviewRect,
+        &deckRect,
+        &editorRect
+    );
+    
+    if (PtInRect(
+            &reviewRect,
+            mousePosition))
+    {
+        app->mode = APP_MODE_REVIEW;
+        return TRUE;
+    }
+    
+    if (PtInRect(
+            &deckRect,
+            mousePosition))
+    {
+        app->mode = APP_MODE_DECK_SELECT;
+        return TRUE;
+    }
+    
+    if (PtInRect(
+            &editorRect,
+            mousePosition))
+    {
+        app->mode = APP_MODE_EDITOR;
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
 /* =========================================================
    Public: drawing
    ========================================================= */
@@ -1960,5 +2039,69 @@ void DrawDeckLoadStatus(
         status->progressLoaded
             ? "Progress loaded"
             : "Progress unavailable"
+    );
+}
+
+void DrawModeTabs(
+    HDC hdc,
+    AppMode mode
+)
+{
+    RECT reviewRect;
+    RECT deckRect;
+    RECT editorRect;
+    
+    GetModeTabRects(
+        &reviewRect,
+        &deckRect,
+        &editorRect
+    );
+    
+    Rectangle(
+        hdc,
+        reviewRect.left,
+        reviewRect.top,
+        reviewRect.right,
+        reviewRect.bottom
+    );
+    
+    Rectangle(
+        hdc,
+        deckRect.left,
+        deckRect.top,
+        deckRect.right,
+        deckRect.bottom
+    );
+    
+    Rectangle(
+        hdc,
+        editorRect.left,
+        editorRect.top,
+        editorRect.right,
+        editorRect.bottom
+    );
+    
+    DrawText(
+        hdc,
+        "Decks",
+        -1,
+        &deckRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    DrawText(
+        hdc,
+        "Editor",
+        -1,
+        &editorRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    DrawText(
+        hdc,
+        "Review",
+        -1,
+        &reviewRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
     );
 }

@@ -46,27 +46,50 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 (HBRUSH)(COLOR_WINDOW + 1)
             );
             
-            if (app.reviewMode == REVIEW_MODE_ACTIVE)
+            if (app.mode == APP_MODE_REVIEW)
             {
-                DrawFlashcard(
-                    memDC,
-                    GetCurrentCard(&app.deck),
-                    &app.cardView
-                );
+                if (app.reviewMode == REVIEW_MODE_ACTIVE)
+                {
+                    DrawFlashcard(
+                        memDC,
+                        GetCurrentCard(&app.deck),
+                        &app.cardView
+                    );
+                    
+                    DrawSessionProgress(memDC, &app.deck);
+                }
+                else if (app.reviewMode == REVIEW_MODE_SESSION_COMPLETE)
+                {
+                    DrawSessionComplete(memDC, &clientRect);
+                }
+                else if (app.reviewMode == REVIEW_MODE_NO_CARDS_DUE)
+                {
+                    DrawNoCardsDue(memDC, &clientRect);
+                }
                 
-                DrawSessionProgress(memDC, &app.deck);
+                DrawDiagnostics(memDC, &clientRect, &app.deck, app.diagnosticScrollOffset);
+                DrawDeckLoadStatus(memDC, &app.deckLoadStatus);
             }
-            else if (app.reviewMode == REVIEW_MODE_SESSION_COMPLETE)
+            else if (app.mode == APP_MODE_DECK_SELECT)
             {
-                DrawSessionComplete(memDC, &clientRect);
+                DrawText(
+                    memDC,
+                    "Deck Selection",
+                    -1,
+                    &app.clientRect,
+                    DT_CENTER | DT_VCENTER | DT_SINGLELINE
+                );
             }
-            else if (app.reviewMode == REVIEW_MODE_NO_CARDS_DUE)
+            else if (app.mode == APP_MODE_EDITOR)
             {
-                DrawNoCardsDue(memDC, &clientRect);
+                DrawText(
+                    memDC,
+                    "Deck Editor",
+                    -1,
+                    &app.clientRect,
+                    DT_CENTER | DT_VCENTER | DT_SINGLELINE
+                );
             }
-            
-            DrawDiagnostics(memDC, &clientRect, &app.deck, app.diagnosticScrollOffset);
-            DrawDeckLoadStatus(memDC, &app.deckLoadStatus);
             
             BitBlt(
                 hdc,
@@ -200,6 +223,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 GET_X_LPARAM(lParam),
                 GET_Y_LPARAM(lParam)
             };
+            
+            if (HandleModeTabClick(
+                    &app,
+                    mousePosition))
+            {
+                InvalidateRect(
+                    hwnd,
+                    NULL,
+                    FALSE
+                );
+                
+                break;
+            }
+            
+            
             
             if (app.reviewMode == REVIEW_MODE_SESSION_COMPLETE)
             {

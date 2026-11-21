@@ -175,6 +175,11 @@ BOOL HandleDiagnosticsScroll(
     int wheelDelta
 );
 
+BOOL HandleModeTabClick(
+    AppState *app,
+    POINT mousePosition
+);
+
 /* =========================================================
    Drawing
    ========================================================= */
@@ -210,6 +215,11 @@ void DrawDiagnostics(
 void DrawDeckLoadStatus(
     HDC hdc,
     const DeckLoadStatus *status
+);
+
+void DrawModeTabs(
+    HDC hdc,
+    AppMode mode
 );
 
 #endif
