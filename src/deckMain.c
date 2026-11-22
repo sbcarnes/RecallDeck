@@ -91,6 +91,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 );
             }
             
+            DrawModeTabs(memDC, app.mode);
+            
             BitBlt(
                 hdc,
                 ps.rcPaint.left, ps.rcPaint.top,
@@ -110,7 +112,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_MOUSEMOVE:
         {
-            if (app.reviewMode != REVIEW_MODE_ACTIVE)
+            if (app.mode != APP_MODE_REVIEW || 
+                app.reviewMode != REVIEW_MODE_ACTIVE)
             {
                 break;
             }
@@ -180,7 +183,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_LBUTTONDOWN:
         {
-            if (app.reviewMode != REVIEW_MODE_ACTIVE)
+            if (app.mode != APP_MODE_REVIEW || 
+                app.reviewMode != REVIEW_MODE_ACTIVE)
             {
                 break;
             }
@@ -237,7 +241,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 break;
             }
             
-            
+            if (app.mode != APP_MODE_REVIEW)
+            {
+                break;
+            }
             
             if (app.reviewMode == REVIEW_MODE_SESSION_COMPLETE)
             {
