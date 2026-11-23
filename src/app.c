@@ -1109,6 +1109,88 @@ static BOOL AppendDiagnosticText(
     return TRUE;
 }
 
+static void DrawModeTab(
+    HDC hdc,
+    const RECT *rect,
+    const char *label,
+    BOOL isActive
+)
+{
+    if (hdc == NULL ||
+        rect == NULL ||
+        label == NULL)
+    {
+        return;
+    }
+    
+    HBRUSH tabBrush =
+        CreateSolidBrush(
+            isActive
+                ? RGB(210, 215, 225)
+                : RGB(235, 235, 235)
+        );
+    
+    if (tabBrush == NULL)
+    {
+        return;
+    }
+    
+    HBRUSH oldBrush =
+        (HBRUSH)SelectObject(
+            hdc,
+            tabBrush
+        );
+    
+    HPEN oldPen =
+        (HPEN)SelectObject(
+            hdc,
+            GetStockObject(BLACK_PEN)
+        );
+    
+    Rectangle(
+        hdc,
+        rect->left,
+        rect->top,
+        rect->right,
+        rect->bottom
+    );
+    
+    RECT textRect = *rect;
+    
+    int oldBackgroundMode =
+        SetBkMode(
+            hdc,
+            TRANSPARENT
+        );
+    
+    DrawText(
+        hdc,
+        label,
+        -1,
+        &textRect,
+        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    SetBkMode(
+        hdc,
+        oldBackgroundMode
+    );
+    
+    SelectObject(
+        hdc,
+        oldPen
+    );
+    
+    SelectObject(
+        hdc,
+        oldBrush
+    );
+    
+    DeleteObject(
+        tabBrush
+    );
+}
+
 /* =========================================================
    Public: initialization
    ========================================================= */
@@ -2057,51 +2139,24 @@ void DrawModeTabs(
         &editorRect
     );
     
-    Rectangle(
+    DrawModeTab(
         hdc,
-        reviewRect.left,
-        reviewRect.top,
-        reviewRect.right,
-        reviewRect.bottom
-    );
-    
-    Rectangle(
-        hdc,
-        deckRect.left,
-        deckRect.top,
-        deckRect.right,
-        deckRect.bottom
-    );
-    
-    Rectangle(
-        hdc,
-        editorRect.left,
-        editorRect.top,
-        editorRect.right,
-        editorRect.bottom
-    );
-    
-    DrawText(
-        hdc,
-        "Decks",
-        -1,
-        &deckRect,
-        DT_CENTER | DT_VCENTER | DT_SINGLELINE
-    );
-    
-    DrawText(
-        hdc,
-        "Editor",
-        -1,
-        &editorRect,
-        DT_CENTER | DT_VCENTER | DT_SINGLELINE
-    );
-    
-    DrawText(
-        hdc,
-        "Review",
-        -1,
         &reviewRect,
-        DT_CENTER | DT_VCENTER | DT_SINGLELINE
+        "Review",
+        mode == APP_MODE_REVIEW
+    );
+    
+    DrawModeTab(
+        hdc,
+        &deckRect,
+        "Decks",
+        mode == APP_MODE_DECK_SELECT
+    );
+    
+    DrawModeTab(
+        hdc,
+        &editorRect,
+        "Editor",
+        mode == APP_MODE_EDITOR
     );
 }
