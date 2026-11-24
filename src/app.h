@@ -222,4 +222,9 @@ void DrawModeTabs(
     AppMode mode
 );
 
+void DrawEditorShell(
+    HDC hdc,
+    const RECT *clientRect
+);
+
 #endif

@@ -82,12 +82,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             else if (app.mode == APP_MODE_EDITOR)
             {
-                DrawText(
+                /*DrawText(
                     memDC,
                     "Deck Editor",
                     -1,
                     &app.clientRect,
                     DT_CENTER | DT_VCENTER | DT_SINGLELINE
+                );*/
+                
+                DrawEditorShell(
+                    memDC,
+                    &app.clientRect
                 );
             }
             

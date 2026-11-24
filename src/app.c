@@ -629,6 +629,80 @@ static void GetModeTabRects(
     );
 }
 
+static void GetEditorLayoutRects(
+    const RECT *clientRect,
+    RECT *cardListRect,
+    RECT *newCardRect,
+    RECT *questionRect,
+    RECT *answerRect,
+    RECT *saveRect,
+    RECT *deleteRect
+)
+{
+    const int margin = 20;
+    const int contentTop = 90;
+    const int gap = 20;
+    
+    const int cardListWidth = 200;
+    
+    const int buttonWidth = 100;
+    const int buttonHeight = 34;
+    
+    int contentRight = clientRect->right - margin;
+    
+    SetRect(
+        cardListRect,
+        margin,
+        contentTop + 24,
+        margin + cardListWidth,
+        clientRect->bottom - 80
+    );
+    
+    SetRect(
+        newCardRect,
+        cardListRect->left,
+        cardListRect->bottom + 10,
+        cardListRect->right,
+        cardListRect->bottom + 10 + buttonHeight
+    );
+    
+    int editorLeft = cardListRect->right + gap;
+    
+    SetRect(
+        questionRect,
+        editorLeft,
+        contentTop + 24,
+        contentRight,
+        contentTop + 124
+    );
+    
+    SetRect(
+        answerRect,
+        editorLeft,
+        questionRect->bottom + 50,
+        contentRight,
+        questionRect->bottom + 170
+    );
+    
+    SetRect(
+        deleteRect,
+        contentRight - buttonWidth,
+        answerRect->bottom + 20,
+        contentRight,
+        answerRect->bottom + 20 + buttonHeight
+    );
+    
+    
+    
+    SetRect(
+        saveRect,
+        deleteRect->left - gap - buttonWidth,
+        deleteRect->top,
+        deleteRect->left - gap,
+        deleteRect->bottom
+    );
+}
+
 /* =========================================================
    Private: drawing helpers
    ========================================================= */
@@ -2158,5 +2232,159 @@ void DrawModeTabs(
         &editorRect,
         "Editor",
         mode == APP_MODE_EDITOR
+    );
+}
+
+void DrawEditorShell(
+    HDC hdc,
+    const RECT *clientRect
+)
+{
+    RECT cardListRect;
+    RECT newCardRect;
+    RECT questionRect;
+    RECT answerRect;
+    RECT saveRect;
+    RECT deleteRect;
+    
+    GetEditorLayoutRects(
+        clientRect,
+        &cardListRect,
+        &newCardRect,
+        &questionRect,
+        &answerRect,
+        &saveRect,
+        &deleteRect
+    );
+    
+    Rectangle(
+        hdc,
+        cardListRect.left,
+        cardListRect.top,
+        cardListRect.right,
+        cardListRect.bottom
+    );
+    
+    RECT cardsLabelRect =
+    {
+        cardListRect.left,
+        cardListRect.top - 24,
+        cardListRect.right,
+        cardListRect.top
+    };
+    
+    Rectangle(
+        hdc,
+        questionRect.left,
+        questionRect.top,
+        questionRect.right,
+        questionRect.bottom
+    );
+    
+    RECT questionLabelRect =
+    {
+        questionRect.left,
+        questionRect.top - 24,
+        questionRect.right,
+        questionRect.top
+    };
+    
+    Rectangle(
+        hdc,
+        answerRect.left,
+        answerRect.top,
+        answerRect.right,
+        answerRect.bottom
+    );
+    
+    RECT answerLabelRect =
+    {
+        answerRect.left,
+        answerRect.top - 24,
+        answerRect.right,
+        answerRect.top
+    };
+    
+    Rectangle(
+        hdc,
+        newCardRect.left,
+        newCardRect.top,
+        newCardRect.right,
+        newCardRect.bottom
+    );
+    
+    Rectangle(
+        hdc,
+        saveRect.left,
+        saveRect.top,
+        saveRect.right,
+        saveRect.bottom
+    );
+    
+    Rectangle(
+        hdc,
+        deleteRect.left,
+        deleteRect.top,
+        deleteRect.right,
+        deleteRect.bottom
+    );
+    
+    int oldBackgroundMode =
+        SetBkMode(
+            hdc,
+            TRANSPARENT
+        );
+    
+    DrawText(
+        hdc,
+        "Cards",
+        -1,
+        &cardsLabelRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    DrawText(
+        hdc,
+        "Question",
+        -1,
+        &questionLabelRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    DrawText(
+        hdc,
+        "Answer",
+        -1,
+        &answerLabelRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    DrawText(
+        hdc,
+        "New Card",
+        -1,
+        &newCardRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    DrawText(
+        hdc,
+        "Save",
+        -1,
+        &saveRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    DrawText(
+        hdc,
+        "Delete",
+        -1,
+        &deleteRect,
+        DT_LEFT | DT_VCENTER | DT_SINGLELINE
+    );
+    
+    SetBkMode(
+        hdc,
+        oldBackgroundMode
     );
 }
