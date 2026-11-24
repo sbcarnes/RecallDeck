@@ -68,7 +68,7 @@ static void InitializeFlashcardView(
 {
     SetRect(
         &view->bounds,
-        80, 140, 420, 340
+        80, 180, 420, 340
     );
     
     view->visibleSide = CARD_FRONT;
@@ -700,6 +700,24 @@ static void GetEditorLayoutRects(
         deleteRect->top,
         deleteRect->left - gap,
         deleteRect->bottom
+    );
+}
+
+static void GetMainContentRect(
+    const RECT *clientRect,
+    RECT *contentRect
+)
+{
+    const int sideMargin = 20;
+    const int contentTop = 135;
+    const int bottomMargin = 20;
+    
+    SetRect(
+        contentRect,
+        sideMargin,
+        contentTop,
+        clientRect->right - sideMargin,
+        clientRect->bottom - bottomMargin
     );
 }
 
@@ -1786,7 +1804,8 @@ void DrawFlashcard(
 
 void DrawSessionProgress(
     HDC hdc,
-    const Deck *deck
+    const Deck *deck,
+    const RECT *clientRect
 )
 {
     if (deck->cardCount == 0)
@@ -1794,12 +1813,18 @@ void DrawSessionProgress(
         return;
     }
     
-    RECT progressRect;
+    RECT contentRect;
     
-    SetRect(
-        &progressRect,
-        20, 20, 180, 50
+    GetMainContentRect(
+        clientRect,
+        &contentRect
     );
+    
+    RECT progressRect = contentRect;
+    
+    progressRect.right = progressRect.left + 160;
+    
+    progressRect.bottom = progressRect.top + 30;
     
     char progressText[64];
     

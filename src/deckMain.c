@@ -56,7 +56,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         &app.cardView
                     );
                     
-                    DrawSessionProgress(memDC, &app.deck);
+                    DrawSessionProgress(memDC, &app.deck, &clientRect);
                 }
                 else if (app.reviewMode == REVIEW_MODE_SESSION_COMPLETE)
                 {
@@ -82,14 +82,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             else if (app.mode == APP_MODE_EDITOR)
             {
-                /*DrawText(
-                    memDC,
-                    "Deck Editor",
-                    -1,
-                    &app.clientRect,
-                    DT_CENTER | DT_VCENTER | DT_SINGLELINE
-                );*/
-                
                 DrawEditorShell(
                     memDC,
                     &app.clientRect

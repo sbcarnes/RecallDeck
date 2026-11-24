@@ -192,7 +192,8 @@ void DrawFlashcard(
 
 void DrawSessionProgress(
     HDC hdc,
-    const Deck *deck
+    const Deck *deck,
+    const RECT *clientRect
 );
 
 void DrawSessionComplete(
