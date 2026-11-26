@@ -80,6 +80,9 @@ typedef struct EditorView
 {
     HWND questionEdit;
     HWND answerEdit;
+    
+    BOOL hasSelection;
+    size_t selectedCardIndex;
 } EditorView;
 
 typedef struct DeckLoadStatus
@@ -242,7 +245,8 @@ void DrawModeTabs(
 
 void DrawEditorShell(
     HDC hdc,
-    const RECT *clientRect
+    const RECT *clientRect,
+    const Deck *deck
 );
 
 #endif

@@ -90,7 +90,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 DrawEditorShell(
                     memDC,
-                    &app.clientRect
+                    &app.clientRect,
+                    &app.deck
                 );
             }
             

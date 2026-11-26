@@ -1314,6 +1314,72 @@ static void DrawModeTab(
     );
 }
 
+static void DrawEditorCardList(
+    HDC hdc,
+    const RECT *listRect,
+    const Deck *deck
+)
+{
+    if (listRect == NULL ||
+        deck == NULL)
+    {
+        return;
+    }
+    
+    const int padding = 4;
+    const int rowHeight = 28;
+    const int rowGap = 4;
+    
+    RECT rowRect;
+    
+    SetRect(
+        &rowRect,
+        listRect->left + padding,
+        listRect->top + padding,
+        listRect->right - padding,
+        listRect->top + padding + rowHeight
+    );
+    
+    int oldBackgroundMode = SetBkMode(hdc, TRANSPARENT);
+    
+    for (size_t i = 0; i < deck->cardCount; i++)
+    {
+        if (rowRect.bottom > listRect->bottom - padding)
+        {
+            break;
+        }
+        
+        Rectangle(
+            hdc,
+            rowRect.left,
+            rowRect.top,
+            rowRect.right,
+            rowRect.bottom
+        );
+        
+        RECT textRect = rowRect;
+        
+        InflateRect(&textRect, -6, 0);
+        
+        DrawTextA(
+            hdc,
+            deck->cards[i].frontText,
+            -1,
+            &textRect,
+            DT_LEFT | DT_VCENTER | DT_SINGLELINE |
+            DT_END_ELLIPSIS | DT_NOPREFIX
+        );
+        
+        OffsetRect(
+            &rowRect,
+            0,
+            rowHeight + rowGap
+        );
+    }
+    
+    SetBkMode(hdc, oldBackgroundMode);
+}
+
 /* =========================================================
    Public: initialization
    ========================================================= */
@@ -2369,7 +2435,8 @@ void DrawModeTabs(
 
 void DrawEditorShell(
     HDC hdc,
-    const RECT *clientRect
+    const RECT *clientRect,
+    const Deck *deck
 )
 {
     RECT cardListRect;
@@ -2404,6 +2471,12 @@ void DrawEditorShell(
         cardListRect.right,
         cardListRect.top
     };
+    
+    DrawEditorCardList(
+        hdc,
+        &cardListRect,
+        deck
+    );
     
     Rectangle(
         hdc,
