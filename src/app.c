@@ -83,6 +83,37 @@ static void InitializeFlashcardView(
     view->hoverTarget = CARD_HOVER_NONE;
 }
 
+static HWND CreateEditorTextField(
+    HWND parent,
+    int controlId
+)
+{
+    HWND edit = CreateWindowExA(
+        WS_EX_CLIENTEDGE,
+        "EDIT",
+        "",
+        WS_CHILD | WS_VSCROLL | ES_MULTILINE |
+        ES_AUTOVSCROLL | ES_WANTRETURN,
+        0, 0, 0, 0,
+        parent,
+        (HMENU)(INT_PTR)controlId,
+        GetModuleHandle(NULL),
+        NULL
+    );
+    
+    if (edit != NULL)
+    {
+        SendMessage(
+            edit,
+            EM_SETLIMITTEXT,
+            255,
+            0
+        );
+    }
+    
+    return edit;
+}
+
 /* =========================================================
    Private: review and session helpers
    ========================================================= */
@@ -1393,6 +1424,19 @@ void InitializeApp(HWND hwnd, AppState *app)
     }
 }
 
+BOOL InitializeEditorControls(
+    HWND hwnd,
+    AppState *app
+)
+{
+    app->editorView.questionEdit = CreateEditorTextField(hwnd, 1001);
+    
+    app->editorView.answerEdit = CreateEditorTextField(hwnd, 1002);
+    
+    return app->editorView.questionEdit != NULL &&
+           app->editorView.answerEdit != NULL;
+}
+
 /* =========================================================
    Public: deck and review state
    ========================================================= */
@@ -1775,6 +1819,69 @@ BOOL HandleModeTabClick(
     }
     
     return FALSE;
+}
+
+void UpdateEditorControls(
+    HWND hwnd,
+    AppState *app
+)
+{
+    EditorView *editor = &app->editorView;
+    
+    if (editor->questionEdit == NULL || editor->answerEdit == NULL)
+    {
+        return;
+    }
+    
+    if (app->mode != APP_MODE_EDITOR)
+    {
+        ShowWindow(editor->questionEdit, SW_HIDE);
+        ShowWindow(editor->answerEdit, SW_HIDE);
+        
+        return;
+    }
+    
+    RECT clientRect;
+    
+    GetClientRect(hwnd, &clientRect);
+    
+    RECT cardListRect;
+    RECT newCardRect;
+    RECT questionRect;
+    RECT answerRect;
+    RECT saveRect;
+    RECT deleteRect;
+    
+    GetEditorLayoutRects(
+        &clientRect,
+        &cardListRect,
+        &newCardRect,
+        &questionRect,
+        &answerRect,
+        &saveRect,
+        &deleteRect
+    );
+    
+    MoveWindow(
+        editor->questionEdit,
+        questionRect.left,
+        questionRect.top,
+        questionRect.right - questionRect.left,
+        questionRect.bottom - questionRect.top,
+        TRUE
+    );
+    
+    MoveWindow(
+        editor->answerEdit,
+        answerRect.left,
+        answerRect.top,
+        answerRect.right - answerRect.left,
+        answerRect.bottom - answerRect.top,
+        TRUE
+    );
+    
+    ShowWindow(editor->questionEdit, SW_SHOW);
+    ShowWindow(editor->answerEdit, SW_SHOW);
 }
 
 /* =========================================================

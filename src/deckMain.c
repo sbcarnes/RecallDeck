@@ -19,8 +19,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     switch(msg)
     {
         case WM_CREATE:
+        {
             InitializeApp(hwnd, &app);
             
+            if (!InitializeEditorControls(hwnd, &app))
+            {
+                return -1;
+            }
+        }
         break;
         case WM_PAINT:
         {
@@ -229,6 +235,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     &app,
                     mousePosition))
             {
+                UpdateEditorControls(hwnd, &app);
+                
                 InvalidateRect(
                     hwnd,
                     NULL,
@@ -400,6 +408,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+        case WM_SIZE:
+        {
+            if (wParam != SIZE_MINIMIZED)
+            {
+                UpdateEditorControls(hwnd, &app);
+                
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
+        }
+        break;
         case WM_CLOSE:
             DestroyWindow(hwnd);
         break;
@@ -452,7 +470,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         WS_EX_CLIENTEDGE,
         g_szClassName,
         "Recall Deck",
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
         CW_USEDEFAULT, CW_USEDEFAULT, 800, 500,
         NULL, NULL, hInstance, NULL);
 

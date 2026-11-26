@@ -76,6 +76,12 @@ typedef struct FlashcardView
     CardHoverTarget hoverTarget;
 } FlashcardView;
 
+typedef struct EditorView
+{
+    HWND questionEdit;
+    HWND answerEdit;
+} EditorView;
+
 typedef struct DeckLoadStatus
 {
     BOOL fileLoaded;
@@ -95,6 +101,7 @@ typedef struct AppState
     
     Deck deck;
     FlashcardView cardView;
+    EditorView editorView;
     
     AppMode mode;
     
@@ -112,6 +119,11 @@ typedef struct AppState
    ========================================================= */
 
 void InitializeApp(HWND hwnd, AppState *app);
+
+BOOL InitializeEditorControls(
+    HWND hwnd,
+    AppState *app
+);
 
 /* =========================================================
    Deck and review state
@@ -178,6 +190,11 @@ BOOL HandleDiagnosticsScroll(
 BOOL HandleModeTabClick(
     AppState *app,
     POINT mousePosition
+);
+
+void UpdateEditorControls(
+    HWND hwnd,
+    AppState *app
 );
 
 /* =========================================================
