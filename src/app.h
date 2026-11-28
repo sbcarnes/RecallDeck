@@ -190,6 +190,12 @@ BOOL HandleDiagnosticsScroll(
     int wheelDelta
 );
 
+BOOL HandleEditorCardClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
+);
+
 BOOL HandleModeTabClick(
     AppState *app,
     POINT mousePosition
@@ -246,7 +252,8 @@ void DrawModeTabs(
 void DrawEditorShell(
     HDC hdc,
     const RECT *clientRect,
-    const Deck *deck
+    const Deck *deck,
+    const EditorView *editor
 );
 
 #endif

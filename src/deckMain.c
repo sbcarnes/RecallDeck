@@ -91,7 +91,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 DrawEditorShell(
                     memDC,
                     &app.clientRect,
-                    &app.deck
+                    &app.deck,
+                    &app.editorView
                 );
             }
             
@@ -243,6 +244,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     NULL,
                     FALSE
                 );
+                
+                break;
+            }
+            
+            if (app.mode == APP_MODE_EDITOR)
+            {
+                RECT clientRect;
+                
+                GetClientRect(hwnd, &clientRect);
+                
+                if (HandleEditorCardClick(
+                        &app,
+                        &clientRect,
+                        mousePosition))
+                {
+                    InvalidateRect(
+                        hwnd,
+                        NULL,
+                        FALSE
+                    );
+                }
                 
                 break;
             }

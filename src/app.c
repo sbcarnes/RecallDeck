@@ -734,6 +734,32 @@ static void GetEditorLayoutRects(
     );
 }
 
+static BOOL GetEditorCardRowRect(
+    const RECT *listRect,
+    size_t cardIndex,
+    RECT *rowRect
+)
+{
+    const int padding = 4;
+    const int rowHeight = 28;
+    const int rowGap = 4;
+    
+    int rowTop = listRect->top + padding +
+                 (int)cardIndex * (rowHeight + rowGap);
+    
+    SetRect(
+        rowRect,
+        listRect->left + padding,
+        rowTop,
+        listRect->right - padding,
+        rowTop + rowHeight
+    );
+    
+    return
+        rowRect->bottom <= listRect->bottom - padding &&
+        rowRect->right > rowRect->left;
+}
+
 static void GetMainContentRect(
     const RECT *clientRect,
     RECT *contentRect
@@ -1317,7 +1343,8 @@ static void DrawModeTab(
 static void DrawEditorCardList(
     HDC hdc,
     const RECT *listRect,
-    const Deck *deck
+    const Deck *deck,
+    const EditorView *editor
 )
 {
     if (listRect == NULL ||
@@ -1328,7 +1355,7 @@ static void DrawEditorCardList(
     
     const int padding = 4;
     const int rowHeight = 28;
-    const int rowGap = 4;
+    //const int rowGap = 4;
     
     RECT rowRect;
     
@@ -1344,18 +1371,45 @@ static void DrawEditorCardList(
     
     for (size_t i = 0; i < deck->cardCount; i++)
     {
-        if (rowRect.bottom > listRect->bottom - padding)
+        RECT rowRect;
+        
+        if (!GetEditorCardRowRect(
+                listRect,
+                i,
+                &rowRect))
         {
             break;
         }
         
-        Rectangle(
+        BOOL isSelected =
+            editor->hasSelection &&
+            editor->selectedCardIndex == i;
+        
+        FillRect(
             hdc,
-            rowRect.left,
-            rowRect.top,
-            rowRect.right,
-            rowRect.bottom
+            &rowRect,
+            GetSysColorBrush(
+                isSelected
+                    ? COLOR_HIGHLIGHT
+                    : COLOR_WINDOW
+            )
         );
+        
+        FrameRect(
+            hdc,
+            &rowRect,
+            GetSysColorBrush(COLOR_WINDOWFRAME)
+        );
+        
+        COLORREF oldTextColor =
+            SetTextColor(
+                hdc,
+                GetSysColor(
+                    isSelected
+                        ? COLOR_HIGHLIGHTTEXT
+                        : COLOR_WINDOWTEXT
+                )
+            );
         
         RECT textRect = rowRect;
         
@@ -1370,11 +1424,7 @@ static void DrawEditorCardList(
             DT_END_ELLIPSIS | DT_NOPREFIX
         );
         
-        OffsetRect(
-            &rowRect,
-            0,
-            rowHeight + rowGap
-        );
+        SetTextColor(hdc, oldTextColor);
     }
     
     SetBkMode(hdc, oldBackgroundMode);
@@ -1843,6 +1893,78 @@ BOOL HandleDiagnosticsScroll(
     }
     
     return TRUE;
+}
+
+BOOL HandleEditorCardClick(
+    AppState *app,
+    const RECT *clientRect,
+    POINT mousePosition
+)
+{
+    RECT cardListRect;
+    RECT newCardRect;
+    RECT questionRect;
+    RECT answerRect;
+    RECT saveRect;
+    RECT deleteRect;
+    
+    GetEditorLayoutRects(
+        clientRect,
+        &cardListRect,
+        &newCardRect,
+        &questionRect,
+        &answerRect,
+        &saveRect,
+        &deleteRect
+    );
+    
+    if (!PtInRect(&cardListRect, mousePosition))
+    {
+        return FALSE;
+    }
+    
+    for (size_t i = 0; i < app->deck.cardCount; i++)
+    {
+        RECT rowRect;
+        
+        if (!GetEditorCardRowRect(
+                &cardListRect,
+                i,
+                &rowRect))
+        {
+            break;
+        }
+        
+        if (PtInRect(&rowRect, mousePosition))
+        {
+            EditorView *editor = &app->editorView;
+            
+            if (editor->hasSelection &&
+                editor->selectedCardIndex == i)
+            {
+                return FALSE;
+            }
+            
+            const Flashcard *card = &app->deck.cards[i];
+            
+            editor->hasSelection = TRUE;
+            editor->selectedCardIndex = i;
+            
+            SetWindowTextA(
+                editor->questionEdit,
+                card->frontText
+            );
+            
+            SetWindowTextA(
+                editor->answerEdit,
+                card->backText
+            );
+            
+            return TRUE;
+        }
+    }
+    
+    return FALSE;
 }
 
 BOOL HandleModeTabClick(
@@ -2436,7 +2558,8 @@ void DrawModeTabs(
 void DrawEditorShell(
     HDC hdc,
     const RECT *clientRect,
-    const Deck *deck
+    const Deck *deck,
+    const EditorView *editor
 )
 {
     RECT cardListRect;
@@ -2475,7 +2598,8 @@ void DrawEditorShell(
     DrawEditorCardList(
         hdc,
         &cardListRect,
-        deck
+        deck,
+        editor
     );
     
     Rectangle(
